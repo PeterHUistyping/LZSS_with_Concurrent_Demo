@@ -1,15 +1,15 @@
 # Fast_LZ77 Understanding and Improving
 Implemented from https://github.com/ariya/FastLZ
 ## How to use
-Input.txt -> Output.txt -> Decompressed.txt
-Open in Hex Editor (vscode extension)
+Input.txt -> Output.txt -> Decompressed.txt\\
+Open in Hex Editor (vscode extension)\\
 Ensure when decompressing, chunk_extra=numbytes;
 ## Update
-Compress / Decompress
+Compress / Decompress\\
 Using namespace std;
 ## Fast_LZ77
 
-### Compression Algorithm
+### Compression Algorithm (Explained by a Demo)
 ```
 Please open in text editor (txt format)
 Reuse:  
@@ -44,7 +44,7 @@ I do not like them, Sam-I-am.
 I do not like green eggs and ham.
 ```
 
-### Compression Src
+### Compression Src 
 ```
 seq = flz_readu32(ip) & 0xffffff;
 	For every ip from the third Byte, combine the consecutive 3B from it as seq
