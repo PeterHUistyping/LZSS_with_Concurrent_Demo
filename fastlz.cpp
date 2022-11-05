@@ -169,7 +169,7 @@ static uint32_t flz_readu32(const void* ptr) {
   const uint8_t* p = (const uint8_t*)ptr;
   return (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
 }
-//return the same len from the start of p
+//return the same len + 1 from the start of p; if no matched return 1
 static uint32_t flz_cmp(const uint8_t* p, const uint8_t* q, const uint8_t* r) {
   const uint8_t* start = p;
   while (q < r)
@@ -215,9 +215,9 @@ static uint16_t flz_hash(uint32_t v) {
 /**
  * @brief *dest++ = MAX_COPY - 1;
  * 
- * @param runs 
- * @param src 
- * @param dest 
+ * @param runs numbers of bytes to be written
+ * @param src  start point  
+ * @param dest  output location
  * @return uint8_t* 
  */
 static uint8_t* flz_literals(uint32_t runs, const uint8_t* src, uint8_t* dest) {
@@ -229,7 +229,7 @@ static uint8_t* flz_literals(uint32_t runs, const uint8_t* src, uint8_t* dest) {
     runs -= MAX_COPY;
   }
   if (runs > 0) {
-    *dest++ = runs - 1;
+    *dest++ = runs - 1;  //literal nums
     flz_copy64(dest, src, runs);
     dest += runs;
   }
@@ -482,7 +482,7 @@ int fastlz2_compress(const void* input, int length, void* output) {
   for (hash = 0; hash < HASH_SIZE; ++hash) htab[hash] = 0;
 
   /* we start with literal copy */
-  const uint8_t* anchor = ip;
+  const uint8_t* anchor = ip;//start from the first that haven't been written
   ip += 2;  //Omit the first two char
 
   /* main loop */
@@ -522,10 +522,10 @@ int fastlz2_compress(const void* input, int length, void* output) {
     op = flz2_match(len, distance, op);
 
     /* update the hash at match boundary */
-    ip += len;
+    ip += len; // move one forward
     seq = flz_readu32(ip);
     hash = flz_hash(seq & 0xffffff);
-    htab[hash] = ip++ - ip_start;
+    htab[hash] = ip++ - ip_start; //move the second forward
     seq >>= 8;
     hash = flz_hash(seq);
     htab[hash] = ip++ - ip_start;
