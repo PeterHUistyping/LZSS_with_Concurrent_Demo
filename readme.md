@@ -1,5 +1,5 @@
 # Fast_LZ77 Understanding and Improving
-
+Implemented from https://github.com/ariya/FastLZ
 ## How to use
 Input.txt -> Output.txt -> Decompressed.txt
 Open in Hex Editor (vscode extension)
