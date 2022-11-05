@@ -5,6 +5,7 @@ Input.txt -> Output.txt
 Open in Hex Editor (vscode extension)
 
 ## Fast_LZ77
+```
 Reuse:  
 Original Match-> Encoded 
   1-2 Bytes   -> 1 Bytes (Literal Run)
@@ -26,3 +27,4 @@ Encoded:
 High 3bits  Match length 001+2           1            Match length 010+2=4            5
                Offset 3           Copy space(20)          Offset 12               Copy \nThat
 		        Sam                   [space]                 I am                    \nThat
+```
