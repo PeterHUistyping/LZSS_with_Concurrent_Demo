@@ -21,12 +21,21 @@
   THE SOFTWARE.
 */
 
-#include "fastlz.h"
+//#include "fastlz.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <iostream>
 #include <string.h>
+
+#define FASTLZ_VERSION 0x000500
+
+#define FASTLZ_VERSION_MAJOR 0
+#define FASTLZ_VERSION_MINOR 5
+#define FASTLZ_VERSION_REVISION 0
+
+#define FASTLZ_VERSION_STRING "0.5.0"
+
 /*
  * Always check for bound when decompressing.
  * Generally it is best to leave it defined.
@@ -648,8 +657,6 @@ int fastlz_decompress(const void* input, int length, void* output, int maxout) {
 
   Note that the compressed data, regardless of the level, can always be
   decompressed using the function fastlz_decompress below.
- 
-
  * @param level 
  * 1 -> fastlz1_compress(input, length, output) | 
  * 2->fastlz2_compress(input, length, output)
