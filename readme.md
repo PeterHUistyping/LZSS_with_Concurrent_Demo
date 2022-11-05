@@ -1,14 +1,17 @@
 # Fast_LZ77 Understanding and Improving
 
 ## How to use
-Input.txt -> Output.txt
+Input.txt -> Output.txt -> Decompressed.txt
 Open in Hex Editor (vscode extension)
-
+Ensure when decompressing, chunk_extra=numbytes;
+## Update
+Compress / Decompress
+Using namespace std;
 ## Fast_LZ77
 ```
 Please open in text editor (txt format)
 Reuse:  
-Original Match-> Encoded 
+Original Match-> Encoded
   1-2 Bytes   -> 1 Bytes (Literal Run)
   3-8 Bytes   -> 2 Bytes (Short Match)
   9-264 Bytes -> 3 Bytes (Long Match)

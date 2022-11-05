@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <string.h>
-
+using namespace std;
 #define FASTLZ_VERSION 0x000500
 
 #define FASTLZ_VERSION_MAJOR 0
@@ -669,8 +669,8 @@ int fastlz_compress_level(int level, const void* input, int length, void* output
 }
 
 int main(){
+  //------------Compress---------------
     FILE* infile =fopen("Input.txt","r");
-    long long  chunk_extra=0;
     /* Get the number of bytes */
      fseek(infile, 0L, SEEK_END);
      const long long numbytes = ftell(infile);
@@ -681,7 +681,7 @@ int main(){
     // read_chunk_header(infile,  &numbytes,  &chunk_extra);
  
     unsigned char* buffer = new unsigned char[numbytes];
-    unsigned char* buffer2 = new unsigned char[chunk_extra+10];
+    unsigned char* buffer2 = new unsigned char[numbytes+10];
     fread(buffer, sizeof(char), numbytes, infile);
     fclose(infile);
     // FILE *f=fopen("C2.txt","wb");
@@ -690,10 +690,39 @@ int main(){
     long long chunk_size =fastlz_compress_level(2,buffer, numbytes, buffer2);
     //std::cout<<numbytes<<chunk_size<<std::endl;
     FILE *f=fopen("output.txt","wb");
-    std::cout<<buffer2[0];
+    //std::cout<<buffer2[0];
     fwrite(buffer2, 1, chunk_size, f);
     fclose(f);
-   
+    delete[]buffer;
+    delete[]buffer2;
     //debug_readin();
+
+  //------------Decompress---------------
+    FILE* infile2 =fopen("output.txt","rb");
+    long long chunk_extra=numbytes;
+    /* Get the number of bytes */
+     fseek(infile2, 0L, SEEK_END);
+    const long long numbytes2 = ftell(infile2);
+    
+    /* reset the file position indicator to 
+     the beginning of the file */
+     fseek(infile2, 0L, SEEK_SET);
+   
+ 
+    unsigned char* buffer3 = new unsigned char[numbytes2];
+    unsigned char* buffer4 = new unsigned char[chunk_extra+10];
+    fread(buffer3, sizeof(char), numbytes2, infile2);
+    // FILE *f2=fopen("Decompressed.txt","wb");
+    // fwrite(buffer3, 1, numbytes2 , f2);
+    // fclose(f2);
+    long long chunk_size2 =fastlz_decompress(buffer3, numbytes, buffer4,chunk_extra);
+    //std::cout<<numbytes<<chunk_extra<<chunk_size<<endl;
+    FILE *f2=fopen("Decompressed.txt","w");
+    fwrite(buffer4, 1, chunk_extra , f2);
+    fclose(f2);
+    delete[]buffer3;
+    delete[]buffer4;
+    fclose(infile2);
+    return 0;
 
 }
