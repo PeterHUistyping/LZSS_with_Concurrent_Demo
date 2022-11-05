@@ -44,7 +44,8 @@ Original Match-> Encoded
 | Long match       | 111   W12-W8|    M7-M0...|     W7-W0    |              |
 | Extended Windows*| ----------------------------------------------------------------------|
 | Short match      | M2-M0 11111 |  1111 1111 |     W15-W8   |     W7-W0    |
-| Long match       | 111   11111 |    M7-M0...|  1111 1111 	 |     W15-W8   |     W7-W0    | ...Depends on Match length 
+| Long match       | 111   11111 |    M7-M0...|  1111 1111 	 |     W15-W8   |     W7-W0    | 
+...Depends on Match length 
 
 Original:
 		------------
