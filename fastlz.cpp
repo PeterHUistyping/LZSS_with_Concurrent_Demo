@@ -490,19 +490,19 @@ int fastlz2_compress(const void* input, int length, void* output) {
 
     /* find potential match */
     do {
-      seq = flz_readu32(ip) & 0xffffff; //(p[2] << 16) | (p[1] << 8) | p[0]
+      seq = flz_readu32(ip) & 0xffffff; //(p[2] << 16) | (p[1] << 8) | p[0] from current ip store consecutive 3 bytes.
       hash = flz_hash(seq);
-      ref = ip_start + htab[hash];
-      htab[hash] = ip - ip_start;
+      ref = ip_start + htab[hash];//reference, if not match to the previous then stick to ip_start; if match , refer to ref
+      htab[hash] = ip - ip_start; // ip offset from ip_Start (initially 0)
       distance = ip - ref;
-      cmp = FASTLZ_LIKELY(distance < MAX_FARDISTANCE) ? flz_readu32(ref) & 0xffffff : 0x1000000;
+      cmp = FASTLZ_LIKELY(distance < MAX_FARDISTANCE) ? flz_readu32(ref) & 0xffffff : 0x1000000; //if not match to the previous then stick to ip_start; if match, refer to match
       if (FASTLZ_UNLIKELY(ip >= ip_limit)) break;
       ++ip;
-    } while (seq != cmp);
+    } while (seq != cmp); // if not match to the previous,  continue to looping
 
     if (FASTLZ_UNLIKELY(ip >= ip_limit)) break;
-
-    --ip;
+    // if match to the previous one(>=3)
+    --ip; // cancel out ++ip;
 
     /* far, needs at least 5-byte match */
     if (distance >= MAX_L2_DISTANCE) {
