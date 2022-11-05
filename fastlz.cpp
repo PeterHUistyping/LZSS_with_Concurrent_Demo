@@ -321,8 +321,10 @@ int fastlz1_compress(const void* input, int length, void* output) {
   const uint8_t* ip_limit = ip + length - 12 - 1;
   // output pointer
   uint8_t* op = (uint8_t*)output;
+  
+ 
+  uint32_t htab[HASH_SIZE]; //  seq(3B)-> hash ->ip offset from ip_Start ; hash_size 1<<14
 
-  uint32_t htab[HASH_SIZE]; // hash_size 1<<14
   uint32_t seq, hash;  // 0- (hash_size/1<<14-1)
 
   /* initializes hash table */
@@ -492,11 +494,11 @@ int fastlz2_compress(const void* input, int length, void* output) {
     do {
       seq = flz_readu32(ip) & 0xffffff; //(p[2] << 16) | (p[1] << 8) | p[0] from current ip store consecutive 3 bytes.
       hash = flz_hash(seq);
-      ref = ip_start + htab[hash];//reference, if not match to the previous then stick to ip_start; if match , refer to ref
+      ref = ip_start + htab[hash];//reference, if not match to the previous then htab=0, ref=ip_start; if match to the previous char[i] , refer to i
       htab[hash] = ip - ip_start; // ip offset from ip_Start (initially 0)
       distance = ip - ref;
       cmp = FASTLZ_LIKELY(distance < MAX_FARDISTANCE) ? flz_readu32(ref) & 0xffffff : 0x1000000; //if not match to the previous then stick to ip_start; if match, refer to match
-      if (FASTLZ_UNLIKELY(ip >= ip_limit)) break;
+      if (FASTLZ_UNLIKELY(ip >= ip_limit)) break;  //no use （assert)
       ++ip;
     } while (seq != cmp); // if not match to the previous,  continue to looping
 

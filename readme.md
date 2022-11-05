@@ -8,6 +8,8 @@ Ensure when decompressing, chunk_extra=numbytes;
 Compress / Decompress
 Using namespace std;
 ## Fast_LZ77
+
+### Compression Algorithm
 ```
 Please open in text editor (txt format)
 Reuse:  
@@ -41,3 +43,12 @@ Do you like green eggs and ham?
 I do not like them, Sam-I-am.
 I do not like green eggs and ham.
 ```
+
+### Compression Src
+seq = flz_readu32(ip) & 0xffffff;
+	For every ip from the third Byte, combine the consecutive 3B from it as seq
+(As 1st,2nd Byte don't need to compress)
+
+
+Build up a htab[HASH_SIZE: 1<<14];
+	hash -> htab  ->ip offset from ip_start (3,4,5..)
