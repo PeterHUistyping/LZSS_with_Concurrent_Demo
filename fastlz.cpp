@@ -662,7 +662,7 @@ int fastlz_compress_level(int level, const void* input, int length, void* output
 }
 
 int main(){
-    FILE* infile =fopen("2Cylinder2.obj","r");
+    FILE* infile =fopen("Input.txt","r");
     long long  chunk_extra=0;
     /* Get the number of bytes */
      fseek(infile, 0L, SEEK_END);
@@ -682,7 +682,7 @@ int main(){
     // fclose(f);
     long long chunk_size =fastlz_compress_level(2,buffer, numbytes, buffer2);
     //std::cout<<numbytes<<chunk_size<<std::endl;
-    FILE *f=fopen("C2.txt","wb");
+    FILE *f=fopen("output.txt","wb");
     std::cout<<buffer2[0];
     fwrite(buffer2, 1, chunk_size, f);
     fclose(f);
