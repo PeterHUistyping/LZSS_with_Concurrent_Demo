@@ -1,11 +1,11 @@
 # Fast_LZ77 Understanding and Improving
 Implemented from https://github.com/ariya/FastLZ
 ## How to use
-Input.txt -> Output.txt -> Decompressed.txt\\
-Open in Hex Editor (vscode extension)\\
+Input.txt -> Output.txt -> Decompressed.txt\
+Open in Hex Editor (vscode extension)\
 Ensure when decompressing, chunk_extra=numbytes;
 ## Update
-Compress / Decompress\\
+Compress / Decompress\
 Using namespace std;
 ## Fast_LZ77
 
