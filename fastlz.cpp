@@ -164,7 +164,7 @@ static void flz_copy256(void* dest, const void* src) {
 #endif /* FLZ_ARCH64 */
 
 #if !defined(FLZ_ARCH64)
-// read in 32 bits
+// read in 4B / 32 bits
 static uint32_t flz_readu32(const void* ptr) {
   const uint8_t* p = (const uint8_t*)ptr;
   return (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
@@ -470,7 +470,7 @@ int fastlz2_compress(const void* input, int length, void* output) {
   const uint8_t* ip = (const uint8_t*)input;
   const uint8_t* ip_start = ip;
   const uint8_t* ip_bound = ip + length - 4; /* because readU32 */
-  const uint8_t* ip_limit = ip + length - 12 - 1;
+  const uint8_t* ip_limit = ip + length - 12 - 1;  //?
   uint8_t* op = (uint8_t*)output;
 
   uint32_t htab[HASH_SIZE];
@@ -481,7 +481,7 @@ int fastlz2_compress(const void* input, int length, void* output) {
 
   /* we start with literal copy */
   const uint8_t* anchor = ip;
-  ip += 2;
+  ip += 2;  //Omit the first two char
 
   /* main loop */
   while (FASTLZ_LIKELY(ip < ip_limit)) {
@@ -490,7 +490,7 @@ int fastlz2_compress(const void* input, int length, void* output) {
 
     /* find potential match */
     do {
-      seq = flz_readu32(ip) & 0xffffff;
+      seq = flz_readu32(ip) & 0xffffff; //(p[2] << 16) | (p[1] << 8) | p[0]
       hash = flz_hash(seq);
       ref = ip_start + htab[hash];
       htab[hash] = ip - ip_start;
