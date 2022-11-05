@@ -1,10 +1,39 @@
 Please open in text editor (txt format)
 Reuse:  
+Level 1: Supported 8192 2^13
 Original Match-> Encoded 
   1-2 Bytes   -> 1 Bytes (Literal Run)
   3-8 Bytes   -> 2 Bytes (Short Match)
   9-264 Bytes -> 3 Bytes (Long Match)
+| Instruction type |  Opcode[0]  |  Opcode[1] |   Opcode[2]  |   Opcode[3]  |
+|------------------|-------------|------------|--------------|--------------|
+| Literal run      | 000 L5-L0   |            |              |              |
+| Short match 	   | M2-M0 W12-W8|    W7-W0   |              |              |
+| Long match       | 111   W12-W8|    M7-M0   |     W7-W0    |              |
 
+***Level 2:
+Original Match-> Encoded 
+  1-2 Bytes   -> 1 Bytes (Literal Run)
+  3-8 Bytes   -> 2 Bytes (Short Match)
+  9+ Bytes -> 3 Bytes (Long Match)
+
+* distance >= MAX_L2_DISTANCE (8192B 2^13)
+  5-8 Bytes   -> 4 Bytes (Extended Windows Size: Short Match)
+			Windows Size 536,870,912B 2^29
+  9-264 Bytes -> 4+ Bytes (Extended Windows Size: Long Match)
+			Depends on Match length
+
+| Instruction type |  Opcode[0]  |  Opcode[1] |   Opcode[2]  |   Opcode[3]  |   Opcode[4]  |
+|------------------|-------------|------------|--------------|--------------|--------------|
+| Literal run      | 000 L5-L0   |            |              |              |
+| Short match 	   | M2-M0 W12-W8|    W7-W0   |              |              |
+| Long match       | 111   W12-W8|    M7-M0...|     W7-W0    |              |
+| Extended Windows*| ----------------------------------------------------------------------|
+| Short match      | M2-M0 11111 |  1111 1111 |     W15-W8   |     W7-W0    |
+| Long match       | 111   11111 |    M7-M0...|  1111 1111 	 |     W15-W8   |     W7-W0    | ...Depends on Match length 
+
+
+* L stands for Literal; M - Match; W- Window size
 Original:
 		------------
 		I am Sam \n
