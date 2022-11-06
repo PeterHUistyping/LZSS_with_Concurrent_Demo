@@ -2,8 +2,10 @@
   Originally CITED FROM
   FastLZ - Byte-aligned LZ77 compression library
   Copyright (C) 2005-2020 Ariya Hidayat <ariya.hidayat@gmail.com>
+  ---------------------------------------------------------------
   With Comments and Documentation 
   Copyright (C) PeterHUistyping
+  ---------------------------------------------------------------
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -563,7 +565,7 @@ int fastlz2_decompress(const void* input, int length, void* output, int maxout) 
           FASTLZ_BOUND_CHECK(ip <= ip_bound);
           code = *ip++;
           len += code;
-        } while (code == 255);
+        } while (code == 255);  //Len left or Windows size not full
       code = *ip++;
       ref -= code;
       len += 3;
