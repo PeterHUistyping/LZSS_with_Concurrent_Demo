@@ -105,7 +105,7 @@ flz_finalize(copy, anchor, op);
 flz1_match(len, distance, op);
 	write match length and offset(distance here) into op
 ```
-### Depression Src 
+### Decompression Src 
 ```
 	Main function:
 	Matching 
