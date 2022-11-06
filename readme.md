@@ -39,11 +39,11 @@ Original Match-> Encoded
 | Instruction type |  Opcode[0]  |  Opcode[1] |   Opcode[2]  |   Opcode[3]  |   Opcode[4]  |
 |------------------|-------------|------------|--------------|--------------|--------------|
 | Literal run      | 000 L5-L0   |            |              |              |
-| Short match 	   | M2-M0 W12-W8|    W7-W0   |              |              |
-| Long match       | 111   W12-W8|    M7-M0...|     W7-W0    |              |
+| Short match 	   | M2-M0 W12-W8|   W7-W0    |              |              |
+| Long match       | 111   W12-W8|  M7-M0...  |     W7-W0    |              |
 | Extended Windows*| ----------------------------------------------------------------------|
-| Short match      | M2-M0 11111 |  1111 1111 |     W15-W8   |     W7-W0    |
-| Long match       | 111   11111 |  M7-M0...  |  1111 1111   |    W15-W8    |     W7-W0    |
+| Short match      | M2-M0 11111 |  1111 1111 |    W15-W8    |     W7-W0    |
+| Long match       | 111   11111 |  M7-M0...  |   1111 1111  |    W15-W8    |     W7-W0    |
  ...Depends on Match length 
 
 Original:
@@ -104,4 +104,12 @@ flz_finalize(copy, anchor, op);
 
 flz1_match(len, distance, op);
 	write match length and offset(distance here) into op
+```
+### Depression Src 
+```
+	Main function:
+	Matching 
+fastlz_memmove(op, ref, len);
+	Literal Run
+fastlz_memcpy(op, ip, ctrl);  
 ```

@@ -217,7 +217,7 @@ static uint16_t flz_hash(uint32_t v) {
  * 
  * @param runs numbers of bytes to be written
  * @param src  start point  
- * @param dest  output location
+ * @param dest destionation
  * @return uint8_t* 
  */
 static uint8_t* flz_literals(uint32_t runs, const uint8_t* src, uint8_t* dest) {
@@ -448,14 +448,13 @@ static uint8_t* flz2_match(uint32_t len, uint32_t distance, uint8_t* op) {
       *op++ = (distance & 255);
     }
   } else {
-    /* far away, but not yet in the another galaxy... */
-    if (len < 7) {
+    if (len < 7) {//Level 2 Extended Windows* Short match
       distance -= MAX_L2_DISTANCE;
       *op++ = (len << 5) + 31;
       *op++ = 255;
       *op++ = distance >> 8;
       *op++ = distance & 255;
-    } else {
+    } else {//Level 2 Extended Windows* Long match
       distance -= MAX_L2_DISTANCE;
       *op++ = (7 << 5) + 31;
       for (len -= 7; len >= 255; len -= 255) *op++ = 255;
@@ -551,13 +550,13 @@ int fastlz2_decompress(const void* input, int length, void* output, int maxout) 
   uint32_t ctrl = (*ip++) & 31;
 
   while (1) {
-    if (ctrl >= 32) {
+    if (ctrl >= 32) { //Level 2 Extended Windows* Short match
       uint32_t len = (ctrl >> 5) - 1;
       uint32_t ofs = (ctrl & 31) << 8;
       const uint8_t* ref = op - ofs - 1;
 
       uint8_t code;
-      if (len == 7 - 1) do {
+      if (len == 7 - 1) do { //Level 2 Extended Windows* Long match
           FASTLZ_BOUND_CHECK(ip <= ip_bound);
           code = *ip++;
           len += code;
