@@ -1,8 +1,10 @@
 /* 
-  CITED FROM
+  Originally CITED FROM
   FastLZ - Byte-aligned LZ77 compression library
   Copyright (C) 2005-2020 Ariya Hidayat <ariya.hidayat@gmail.com>
-  With Comments and Documentation
+  With Comments and Documentation 
+  Copyright (C) PeterHUistyping
+
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
