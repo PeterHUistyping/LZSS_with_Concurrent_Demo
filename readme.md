@@ -74,7 +74,7 @@ I do not like green eggs and ham.
 
 ### Compression Src 
 ```
-seq = flz_readu32(ip) & 0xffffff;
+seq = lzss_readu32(ip) & 0xffffff;
 	seq=3Bytes staring from ip, for every ip from the third Byte
 (As 1st,2nd Byte don't need to compress)
 
@@ -88,7 +88,7 @@ ref = ip_start + htab[hash];
 distance = ip - ref;
 	LZ77 offset
 
-cmp = FASTLZ_LIKELY(distance < MAX_FARDISTANCE) ? flz_readu32(ref) & 0xffffff : 0x1000000;
+cmp = FASTLZ_LIKELY(distance < MAX_FARDISTANCE) ? lzss_readu32(ref) & 0xffffff : 0x1000000;
 	comparing 3Bytes staring from ip and 3Bytes staring from ref
 	if cmp==seq -> break;
 
@@ -97,19 +97,19 @@ const uint8_t* anchor = ip;
 
 
 	Main function:
-flz_literals(ip - anchor, anchor, op); 
-flz_finalize(copy, anchor, op);
+lzss_literals(ip - anchor, anchor, op); 
+lzss_finalize(copy, anchor, op);
 	write from anchor to ip into op 
 	write from anchor copy Bytes into op
 
-flz1_match(len, distance, op);
+lzss1_match(len, distance, op);
 	write match length and offset(distance here) into op
 ```
 ### Decompression Src 
 ```
 	Main function:
 	Matching 
-fastlz_memmove(op, ref, len);
+LZSS_memmove(op, ref, len);
 	Literal Run
-fastlz_memcpy(op, ip, ctrl);  
+LZSS_memcpy(op, ip, ctrl);  
 ```

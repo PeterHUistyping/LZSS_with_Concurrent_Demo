@@ -4,29 +4,11 @@
   Copyright (C) 2005-2020 Ariya Hidayat <ariya.hidayat@gmail.com>
   ---------------------------------------------------------------
   With Comments and Documentation 
+  Deflate part
   Copyright (C) PeterHUistyping
   ---------------------------------------------------------------
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files (the "Software"), to deal
-  in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  copies of the Software, and to permit persons to whom the Software is
-  furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-  THE SOFTWARE.
 */
-
-//#include "fastlz.h"
+ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -79,21 +61,21 @@ using namespace std;
 
 #if defined(FASTLZ_USE_MEMMOVE) && (FASTLZ_USE_MEMMOVE == 0)
 
-static void fastlz_memmove(uint8_t* dest, const uint8_t* src, uint32_t count) {
+static void LZSS_memmove(uint8_t* dest, const uint8_t* src, uint32_t count) {
   do {
     *dest++ = *src++;
   } while (--count);
 }
 
-static void fastlz_memcpy(uint8_t* dest, const uint8_t* src, uint32_t count) {
-  return fastlz_memmove(dest, src, count);
+static void LZSS_memcpy(uint8_t* dest, const uint8_t* src, uint32_t count) {
+  return LZSS_memmove(dest, src, count);
 }
 
 #else
 
 #include <string.h>
 
-static void fastlz_memmove(uint8_t* dest, const uint8_t* src, uint32_t count) {
+static void LZSS_memmove(uint8_t* dest, const uint8_t* src, uint32_t count) {
   if ((count > 4) && (dest >= src + count)) {
     memmove(dest, src, count);
   } else {
@@ -115,24 +97,24 @@ static void fastlz_memmove(uint8_t* dest, const uint8_t* src, uint32_t count) {
   }
 }
 //memcpy(dest, src, count);
-static void fastlz_memcpy(uint8_t* dest, const uint8_t* src, uint32_t count) { memcpy(dest, src, count); }
+static void LZSS_memcpy(uint8_t* dest, const uint8_t* src, uint32_t count) { memcpy(dest, src, count); }
 
 #endif
 
 #if defined(FLZ_ARCH64)
 
-static uint32_t flz_readu32(const void* ptr) { return *(const uint32_t*)ptr; }
+static uint32_t lzss_readu32(const void* ptr) { return *(const uint32_t*)ptr; }
 
-static uint64_t flz_readu64(const void* ptr) { return *(const uint64_t*)ptr; }
+static uint64_t lzss_readu64(const void* ptr) { return *(const uint64_t*)ptr; }
 
-static uint32_t flz_cmp(const uint8_t* p, const uint8_t* q, const uint8_t* r) {
+static uint32_t lzss_cmp(const uint8_t* p, const uint8_t* q, const uint8_t* r) {
   const uint8_t* start = p;
 
-  if (flz_readu64(p) == flz_readu64(q)) {
+  if (lzss_readu64(p) == lzss_readu64(q)) {
     p += 8;
     q += 8;
   }
-  if (flz_readu32(p) == flz_readu32(q)) {
+  if (lzss_readu32(p) == lzss_readu32(q)) {
     p += 4;
     q += 4;
   }
@@ -141,7 +123,7 @@ static uint32_t flz_cmp(const uint8_t* p, const uint8_t* q, const uint8_t* r) {
   return p - start;
 }
 
-static void flz_copy64(uint8_t* dest, const uint8_t* src, uint32_t count) {
+static void lzss_copy64(uint8_t* dest, const uint8_t* src, uint32_t count) {
   const uint64_t* p = (const uint64_t*)src;
   uint64_t* q = (uint64_t*)dest;
   if (count < 16) {
@@ -157,7 +139,7 @@ static void flz_copy64(uint8_t* dest, const uint8_t* src, uint32_t count) {
   }
 }
 
-static void flz_copy256(void* dest, const void* src) {
+static void lzss_copy256(void* dest, const void* src) {
   const uint64_t* p = (const uint64_t*)src;
   uint64_t* q = (uint64_t*)dest;
   *q++ = *p++;
@@ -170,19 +152,19 @@ static void flz_copy256(void* dest, const void* src) {
 
 #if !defined(FLZ_ARCH64)
 // read in 4B / 32 bits
-static uint32_t flz_readu32(const void* ptr) {
+static uint32_t lzss_readu32(const void* ptr) {
   const uint8_t* p = (const uint8_t*)ptr;
   return (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
 }
 //return the same len + 1 from the start of p; if no matched return 1
-static uint32_t flz_cmp(const uint8_t* p, const uint8_t* q, const uint8_t* r) {
+static uint32_t lzss_cmp(const uint8_t* p, const uint8_t* q, const uint8_t* r) {
   const uint8_t* start = p;
   while (q < r)
     if (*p++ != *q++) break;
   return p - start;
 }
 
-static void flz_copy64(uint8_t* dest, const uint8_t* src, uint32_t count) {
+static void lzss_copy64(uint8_t* dest, const uint8_t* src, uint32_t count) {
   const uint8_t* p = (const uint8_t*)src;
   uint8_t* q = (uint8_t*)dest;
   int c;
@@ -191,7 +173,7 @@ static void flz_copy64(uint8_t* dest, const uint8_t* src, uint32_t count) {
   }
 }
 
-static void flz_copy256(void* dest, const void* src) {
+static void lzss_copy256(void* dest, const void* src) {
   const uint8_t* p = (const uint8_t*)src;
   uint8_t* q = (uint8_t*)dest;
   int c;
@@ -213,7 +195,7 @@ static void flz_copy256(void* dest, const void* src) {
 #define HASH_MASK (HASH_SIZE - 1)
 
 //hashing the least Hash_Log bits
-static uint16_t flz_hash(uint32_t v) {
+static uint16_t lzss_hash(uint32_t v) {
   uint32_t h = (v * 2654435769LL) >> (32 - HASH_LOG); 
   return h & HASH_MASK;
 }
@@ -225,24 +207,24 @@ static uint16_t flz_hash(uint32_t v) {
  * @param dest destionation
  * @return uint8_t* 
  */
-static uint8_t* flz_literals(uint32_t runs, const uint8_t* src, uint8_t* dest) {
+static uint8_t* lzss_literals(uint32_t runs, const uint8_t* src, uint8_t* dest) {
   while (runs >= MAX_COPY) {
     *dest++ = MAX_COPY - 1;
-    flz_copy256(dest, src);
+    lzss_copy256(dest, src);
     src += MAX_COPY;
     dest += MAX_COPY;
     runs -= MAX_COPY;
   }
   if (runs > 0) {
     *dest++ = runs - 1;  //literal nums
-    flz_copy64(dest, src, runs);
+    lzss_copy64(dest, src, runs);
     dest += runs;
   }
   return dest;
 }
 
-/* special case of memcpy: at most 32 bytes ||||fastlz_memcpy(dest, src, count);*/
-static void flz_smallcopy(uint8_t* dest, const uint8_t* src, uint32_t count) {
+/* special case of memcpy: at most 32 bytes ||||LZSS_memcpy(dest, src, count);*/
+static void lzss_smallcopy(uint8_t* dest, const uint8_t* src, uint32_t count) {
 #if defined(FLZ_ARCH64)
   if (count >= 8) {
     const uint64_t* p = (const uint64_t*)src;
@@ -255,28 +237,28 @@ static void flz_smallcopy(uint8_t* dest, const uint8_t* src, uint32_t count) {
     }
   }
 #endif
-  fastlz_memcpy(dest, src, count);
+  LZSS_memcpy(dest, src, count);
 }
 /**
  * @brief copy src -> dest
- * fastlz_memcpy(dest, src, count);  copy the second arg -> first arg
+ * LZSS_memcpy(dest, src, count);  copy the second arg -> first arg
  * 
  * @param runs copy <=Max_COPY
  * @param src 
  * @param dest 
  * @return uint8_t* dest
  */
-static uint8_t* flz_finalize(uint32_t runs, const uint8_t* src, uint8_t* dest) {
+static uint8_t* lzss_finalize(uint32_t runs, const uint8_t* src, uint8_t* dest) {
   while (runs >= MAX_COPY) {
     *dest++ = MAX_COPY - 1;
-    flz_smallcopy(dest, src, MAX_COPY);
+    lzss_smallcopy(dest, src, MAX_COPY);
     src += MAX_COPY;
     dest += MAX_COPY;
     runs -= MAX_COPY;
   }
   if (runs > 0) {
     *dest++ = runs - 1;
-    flz_smallcopy(dest, src, runs);
+    lzss_smallcopy(dest, src, runs);
     dest += runs;
   }
   return dest;
@@ -289,7 +271,7 @@ static uint8_t* flz_finalize(uint32_t runs, const uint8_t* src, uint8_t* dest) {
  * @param op 
  * @return uint8_t* 
  */
-static uint8_t* flz1_match(uint32_t len, uint32_t distance, uint8_t* op) {
+static uint8_t* lzss1_match(uint32_t len, uint32_t distance, uint8_t* op) {
   --distance;
   if (FASTLZ_UNLIKELY(len > MAX_LEN - 2))
     while (len > MAX_LEN - 2) {
@@ -316,7 +298,7 @@ static uint8_t* flz1_match(uint32_t len, uint32_t distance, uint8_t* op) {
  * @param output  
  * @return int 
  */
-int fastlz1_compress(const void* input, int length, void* output) {
+int LZSS1_compress(const void* input, int length, void* output) {
   // input pointer
   const uint8_t* ip = (const uint8_t*)input;
   // start of input pointer
@@ -346,12 +328,12 @@ int fastlz1_compress(const void* input, int length, void* output) {
 
     /* find potential match */
     do {
-      seq = flz_readu32(ip) & 0xffffff;//keeping 24 least bits
-      hash = flz_hash(seq); //create the hash index
+      seq = lzss_readu32(ip) & 0xffffff;//keeping 24 least bits
+      hash = lzss_hash(seq); //create the hash index
       ref = ip_start + htab[hash];  
       htab[hash] = ip - ip_start; //update the current index to hash table
       distance = ip - ref;   
-      cmp = FASTLZ_LIKELY(distance < MAX_L1_DISTANCE) ? flz_readu32(ref) & 0xffffff : 0x1000000;
+      cmp = FASTLZ_LIKELY(distance < MAX_L1_DISTANCE) ? lzss_readu32(ref) & 0xffffff : 0x1000000;
       if (FASTLZ_UNLIKELY(ip >= ip_limit)) break;
       ++ip;
     } while (seq != cmp);  // while (seq==cmp) break;  ->Given that htab[hash]=0;  distance=ip-ipstart;
@@ -360,31 +342,31 @@ int fastlz1_compress(const void* input, int length, void* output) {
     --ip;
 
     if (FASTLZ_LIKELY(ip > anchor)) {
-      op = flz_literals(ip - anchor, anchor, op);// copy(ip-anchor)times from anchor to op
+      op = lzss_literals(ip - anchor, anchor, op);// copy(ip-anchor)times from anchor to op
     }
 
-    uint32_t len = flz_cmp(ref + 3, ip + 3, ip_bound);
-    op = flz1_match(len, distance, op);
+    uint32_t len = lzss_cmp(ref + 3, ip + 3, ip_bound);
+    op = lzss1_match(len, distance, op);
 
     /* update the hash at match boundary */
     ip += len;
-    seq = flz_readu32(ip);
-    hash = flz_hash(seq & 0xffffff);
+    seq = lzss_readu32(ip);
+    hash = lzss_hash(seq & 0xffffff);
     htab[hash] = ip++ - ip_start;
     seq >>= 8;
-    hash = flz_hash(seq);
+    hash = lzss_hash(seq);
     htab[hash] = ip++ - ip_start;
 
     anchor = ip; // -> op
   }//end of while
 
   uint32_t copy = (uint8_t*)input + length - anchor;
-  op = flz_finalize(copy, anchor, op);//copy anchor to op
+  op = lzss_finalize(copy, anchor, op);//copy anchor to op
 
   return op - (uint8_t*)output;
 }
 
-int fastlz1_decompress(const void* input, int length, void* output, int maxout) {
+int LZSS1_decompress(const void* input, int length, void* output, int maxout) {
   const uint8_t* ip = (const uint8_t*)input;
   const uint8_t* ip_limit = ip + length;
   const uint8_t* ip_bound = ip_limit - 2;
@@ -420,7 +402,7 @@ int fastlz1_decompress(const void* input, int length, void* output, int maxout) 
       //The minimum match length is 3 and the maximum match length is 8.
       FASTLZ_BOUND_CHECK(op + len <= op_limit);
       FASTLZ_BOUND_CHECK(ref >= (uint8_t*)output);
-      fastlz_memmove(op, ref, len);
+      LZSS_memmove(op, ref, len);
       op += len;  //move on
 
 
@@ -428,7 +410,7 @@ int fastlz1_decompress(const void* input, int length, void* output, int maxout) 
       ctrl++;//The minimum literal run is 1 and the maximum literal run is 32.
       FASTLZ_BOUND_CHECK(op + ctrl <= op_limit);
       FASTLZ_BOUND_CHECK(ip + ctrl <= ip_limit);
-      fastlz_memcpy(op, ip, ctrl); 
+      LZSS_memcpy(op, ip, ctrl); 
       ip += ctrl; //have been copied; move on
       op += ctrl;
     }
@@ -440,7 +422,7 @@ int fastlz1_decompress(const void* input, int length, void* output, int maxout) 
   return op - (uint8_t*)output;
 }
 
-static uint8_t* flz2_match(uint32_t len, uint32_t distance, uint8_t* op) {
+static uint8_t* lzss2_match(uint32_t len, uint32_t distance, uint8_t* op) {
   --distance;
   if (distance < MAX_L2_DISTANCE) {
     if (len < 7) {
@@ -472,7 +454,7 @@ static uint8_t* flz2_match(uint32_t len, uint32_t distance, uint8_t* op) {
   return op;
 }
 
-int fastlz2_compress(const void* input, int length, void* output) {
+int LZSS2_compress(const void* input, int length, void* output) {
   const uint8_t* ip = (const uint8_t*)input;
   const uint8_t* ip_start = ip;
   const uint8_t* ip_bound = ip + length - 4; /* because readU32 */
@@ -496,12 +478,12 @@ int fastlz2_compress(const void* input, int length, void* output) {
 
     /* find potential match */
     do {
-      seq = flz_readu32(ip) & 0xffffff; //(p[2] << 16) | (p[1] << 8) | p[0] from current ip store consecutive 3 bytes.
-      hash = flz_hash(seq);
+      seq = lzss_readu32(ip) & 0xffffff; //(p[2] << 16) | (p[1] << 8) | p[0] from current ip store consecutive 3 bytes.
+      hash = lzss_hash(seq);
       ref = ip_start + htab[hash];//reference, if not match to the previous then htab=0, ref=ip_start; if match to the previous char[i] , refer to i
       htab[hash] = ip - ip_start; // ip offset from ip_Start (initially 0)
       distance = ip - ref;
-      cmp = FASTLZ_LIKELY(distance < MAX_FARDISTANCE) ? flz_readu32(ref) & 0xffffff : 0x1000000; //if not match to the previous then stick to ip_start; if match, refer to match
+      cmp = FASTLZ_LIKELY(distance < MAX_FARDISTANCE) ? lzss_readu32(ref) & 0xffffff : 0x1000000; //if not match to the previous then stick to ip_start; if match, refer to match
       if (FASTLZ_UNLIKELY(ip >= ip_limit)) break;  //no use （assert)
       ++ip;
     } while (seq != cmp); // if not match to the previous,  continue to looping
@@ -519,34 +501,34 @@ int fastlz2_compress(const void* input, int length, void* output) {
     }
 
     if (FASTLZ_LIKELY(ip > anchor)) {
-      op = flz_literals(ip - anchor, anchor, op);
+      op = lzss_literals(ip - anchor, anchor, op);
     }
 
-    uint32_t len = flz_cmp(ref + 3, ip + 3, ip_bound);
-    op = flz2_match(len, distance, op);
+    uint32_t len = lzss_cmp(ref + 3, ip + 3, ip_bound);
+    op = lzss2_match(len, distance, op);
 
     /* update the hash at match boundary */
     ip += len; // move one forward
-    seq = flz_readu32(ip);
-    hash = flz_hash(seq & 0xffffff);
+    seq = lzss_readu32(ip);
+    hash = lzss_hash(seq & 0xffffff);
     htab[hash] = ip++ - ip_start; //move the second forward
     seq >>= 8;
-    hash = flz_hash(seq);
+    hash = lzss_hash(seq);
     htab[hash] = ip++ - ip_start;
 
     anchor = ip;
   }
 
   uint32_t copy = (uint8_t*)input + length - anchor;
-  op = flz_finalize(copy, anchor, op);
+  op = lzss_finalize(copy, anchor, op);
 
-  /* marker for fastlz2 */
+  /* marker for LZSS2 */
   *(uint8_t*)output |= (1 << 5);
 
   return op - (uint8_t*)output;
 }
 
-int fastlz2_decompress(const void* input, int length, void* output, int maxout) {
+int LZSS2_decompress(const void* input, int length, void* output, int maxout) {
   const uint8_t* ip = (const uint8_t*)input;
   const uint8_t* ip_limit = ip + length;
   const uint8_t* ip_bound = ip_limit - 2;
@@ -581,13 +563,13 @@ int fastlz2_decompress(const void* input, int length, void* output, int maxout) 
 
       FASTLZ_BOUND_CHECK(op + len <= op_limit);
       FASTLZ_BOUND_CHECK(ref >= (uint8_t*)output);
-      fastlz_memmove(op, ref, len);
+      LZSS_memmove(op, ref, len);
       op += len;
     } else {
       ctrl++;
       FASTLZ_BOUND_CHECK(op + ctrl <= op_limit);
       FASTLZ_BOUND_CHECK(ip + ctrl <= ip_limit);
-      fastlz_memcpy(op, ip, ctrl);
+      LZSS_memcpy(op, ip, ctrl);
       ip += ctrl;
       op += ctrl;
     }
@@ -601,18 +583,18 @@ int fastlz2_decompress(const void* input, int length, void* output, int maxout) 
 /**
   DEPRECATED.
 
-  This is similar to fastlz_compress_level above, but with the level
+  This is similar to LZSS_compress_level above, but with the level
   automatically chosen.
 
   This function is deprecated and it will be completely removed in some future
   version.
 */
-// int fastlz_compress(const void* input, int length, void* output) {
-//   /* for short block, choose fastlz1 */
-//   if (length < 65536) return fastlz1_compress(input, length, output);
+// int LZSS_compress(const void* input, int length, void* output) {
+//   /* for short block, choose LZSS1 */
+//   if (length < 65536) return LZSS1_compress(input, length, output);
 
 //   /* else... */
-//   return fastlz2_compress(input, length, output);
+//   return LZSS2_compress(input, length, output);
 // }
 
 
@@ -629,15 +611,15 @@ int fastlz2_decompress(const void* input, int length, void* output, int maxout) 
   more than what is specified in maxout.
 
   Note that the decompression will always work, regardless of the
-  compression level specified in fastlz_compress_level above (when
+  compression level specified in LZSS_compress_level above (when
   producing the compressed block).
  */
-int fastlz_decompress(const void* input, int length, void* output, int maxout) {
+int LZSS_decompress(const void* input, int length, void* output, int maxout) {
   /* magic identifier for compression level */
   int level = ((*(const uint8_t*)input) >> 5) + 1;
 
-  if (level == 1) return fastlz1_decompress(input, length, output, maxout);
-  if (level == 2) return fastlz2_decompress(input, length, output, maxout);
+  if (level == 1) return LZSS1_decompress(input, length, output, maxout);
+  if (level == 2) return LZSS2_decompress(input, length, output, maxout);
 
   /* unknown level, trigger error */
   return 0;
@@ -662,15 +644,15 @@ int fastlz_decompress(const void* input, int length, void* output, int maxout) {
   Level 2 is slightly slower but it gives better compression ratio.
 
   Note that the compressed data, regardless of the level, can always be
-  decompressed using the function fastlz_decompress below.
+  decompressed using the function LZSS_decompress below.
  * @param level 
- * 1 -> fastlz1_compress(input, length, output) | 
- * 2->fastlz2_compress(input, length, output)
+ * 1 -> LZSS1_compress(input, length, output) | 
+ * 2->LZSS2_compress(input, length, output)
  * @return int chunk_size (size_t __nitems nums of output) 
  */
-int fastlz_compress_level(int level, const void* input, int length, void* output) {
-  if (level == 1) return fastlz1_compress(input, length, output);
-  if (level == 2) return fastlz2_compress(input, length, output);
+int LZSS_compress_level(int level, const void* input, int length, void* output) {
+  if (level == 1) return LZSS1_compress(input, length, output);
+  if (level == 2) return LZSS2_compress(input, length, output);
   return 0;
 }
 
@@ -680,7 +662,7 @@ int main(){
     /* Get the number of bytes */
      fseek(infile, 0L, SEEK_END);
      const long long numbytes = ftell(infile);
-    std::cout<<numbytes;
+    //std::cout<<numbytes;
     // /* reset the file position indicator to 
     // the beginning of the file */
      fseek(infile, 0L, SEEK_SET);
@@ -693,7 +675,7 @@ int main(){
     // FILE *f=fopen("C2.txt","wb");
     // fwrite(buffer, 1, numbytes , f);
     // fclose(f);
-    long long chunk_size =fastlz_compress_level(2,buffer, numbytes, buffer2);
+    long long chunk_size =LZSS_compress_level(1,buffer, numbytes, buffer2);
     //std::cout<<numbytes<<chunk_size<<std::endl;
     FILE *f=fopen("output.txt","wb");
     //std::cout<<buffer2[0];
@@ -721,7 +703,7 @@ int main(){
     // FILE *f2=fopen("Decompressed.txt","wb");
     // fwrite(buffer3, 1, numbytes2 , f2);
     // fclose(f2);
-    long long chunk_size2 =fastlz_decompress(buffer3, numbytes, buffer4,chunk_extra);
+    long long chunk_size2 =LZSS_decompress(buffer3, numbytes, buffer4,chunk_extra);
     //std::cout<<numbytes<<chunk_extra<<chunk_size<<endl;
     FILE *f2=fopen("Decompressed.txt","w");
     fwrite(buffer4, 1, chunk_extra , f2);
