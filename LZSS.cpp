@@ -14,6 +14,15 @@
 #include <stdint.h>
 #include <iostream>
 #include <string.h>
+#include <assert.h>
+
+// C++ program to find out execution time of
+// of functions
+#include <algorithm>
+#include <chrono>
+#include <iostream>
+#include<vector>
+
 using namespace std;
 #define FASTLZ_VERSION 0x000500
 
@@ -658,8 +667,10 @@ int LZSS_compress_level(int level, const void* input, int length, void* output) 
 
 int main(){
   //------------Compress---------------
-    FILE* infile =fopen("Input.txt","r");
+    FILE* infile =fopen("output.txt","r");
+    //FILE* infile =fopen("2CylinderEngine.obj","r");
     /* Get the number of bytes */
+    
      fseek(infile, 0L, SEEK_END);
      const long long numbytes = ftell(infile);
     //std::cout<<numbytes;
@@ -669,16 +680,116 @@ int main(){
     // read_chunk_header(infile,  &numbytes,  &chunk_extra);
  
     unsigned char* buffer = new unsigned char[numbytes];
+    unsigned char* buffer_rev = new unsigned char[numbytes];
+
     unsigned char* buffer2 = new unsigned char[numbytes+10];
+
     fread(buffer, sizeof(char), numbytes, infile);
     fclose(infile);
-    // FILE *f=fopen("C2.txt","wb");
-    // fwrite(buffer, 1, numbytes , f);
-    // fclose(f);
-    long long chunk_size =LZSS_compress_level(1,buffer, numbytes, buffer2);
+    // for(long long i=0;i<numbytes;i++){
+    //   buffer_rev[i]=buffer[numbytes-i];
+    // }
+    long long count=0;
+    for(long long i=0;i<numbytes;i++){  
+      buffer_rev[i]=buffer[i];
+      if(buffer[i]==0){count++;}
+      
+    }
+    cout<<count<<endl<<numbytes;
+    
+//      for(long long i=0;i<numbytes-1;i++){
+//       int a,b,c,d,e,ff,g,h;
+//       a=buffer_rev[i]>>7;
+//       a=a&1;
+//       b=buffer_rev[i]>>6;
+//       b=b&1;
+//       c=buffer_rev[i]>>5;
+//       c=c&1;
+//       d=buffer_rev[i]>>4;
+//       d=d&1;
+//       e=buffer_rev[i]>>3;
+//       e=e&1;
+//       ff=buffer_rev[i]>>2;
+//       ff=ff&1;
+//       g=buffer_rev[i]>>1;
+//       g=g&1;
+//       h=buffer_rev[i]&1;
+// //-----------------------
+//       int a1,b1,c1,d1,e1,f1,g1,h1;
+//       i++;
+//       a1=buffer_rev[i]>>7;
+//       a1=a1&1;
+//       b1=buffer_rev[i]>>6;
+//       b1=b1&1;
+//       c1=buffer_rev[i]>>5;
+//       c1=c1&1;
+//       d1=buffer_rev[i]>>4;
+//       d1=d1&1;
+//       e1=buffer_rev[i]>>3;
+//       e1=e1&1;
+//       f1=buffer_rev[i]>>2;
+//       f1=f1&1;
+//       g1=buffer_rev[i]>>1;
+//       g1=g&1;
+//       h1=buffer_rev[i]&1;
+
+//       buffer_rev[i--]= (a<<7)+(e<<6)+(a1<<5)+(e1<<4)+(b<<3)+(ff<<2)+(b1<<1)+f1;
+//       buffer_rev[i++]=( c<<7)+(g<<6)+(c1<<5)+(g1<<4)+(d<<3)+(h<<2)+(d1<<1)+h1;
+     
+//     }
+
+//     long long change=numbytes/2;
+//     for(long long i=0;i<change;i++){
+//       int a,b,c,d,e,ff,g,h;
+//       long long temp=i;
+//       a=buffer_rev[i]>>7;
+//       a=a&1;
+//       b=buffer_rev[i]>>6;
+//       b=b&1;
+//       c=buffer_rev[i]>>5;
+//       c=c&1;
+//       d=buffer_rev[i]>>4;
+//       d=d&1;
+//       e=buffer_rev[i]>>3;
+//       e=e&1;
+//       ff=buffer_rev[i]>>2;
+//       ff=ff&1;
+//       g=buffer_rev[i]>>1;
+//       g=g&1;
+//       h=buffer_rev[i]&1;
+// //-----------------------
+//       int a1,b1,c1,d1,e1,f1,g1,h1;
+//       i=numbytes-i;
+//       a1=buffer_rev[i]>>7;
+//       a1=a1&1;
+//       b1=buffer_rev[i]>>6;
+//       b1=b1&1;
+//       c1=buffer_rev[i]>>5;
+//       c1=c1&1;
+//       d1=buffer_rev[i]>>4;
+//       d1=d1&1;
+//       e1=buffer_rev[i]>>3;
+//       e1=e1&1;
+//       f1=buffer_rev[i]>>2;
+//       f1=f1&1;
+//       g1=buffer_rev[i]>>1;
+//       g1=g&1;
+//       h1=buffer_rev[i]&1;
+//       buffer_rev[i]= (a<<7)+(e<<6)+(a1<<5)+(e1<<4)+(b<<3)+(ff<<2)+(b1<<1)+f1;
+//       i=temp;
+//       buffer_rev[i]=( c<<7)+(g<<6)+(c1<<5)+(g1<<4)+(d<<3)+(h<<2)+(d1<<1)+h1;
+     
+//     }
+    
+     FILE *f4=fopen("C2.txt","wb");
+     fwrite(buffer_rev, 1, numbytes , f4);
+     fclose(f4);
+
+    long long chunk_size =LZSS_compress_level(1,buffer_rev, numbytes, buffer2);
     //std::cout<<numbytes<<chunk_size<<std::endl;
-    FILE *f=fopen("output.txt","wb");
+    FILE *f=fopen("output2.txt","wb");
     //std::cout<<buffer2[0];
+      // cout<<chunk_size;
     fwrite(buffer2, 1, chunk_size, f);
     fclose(f);
     delete[]buffer;
@@ -686,7 +797,7 @@ int main(){
     //debug_readin();
 
   //------------Decompress---------------
-    FILE* infile2 =fopen("output.txt","rb");
+    FILE* infile2 =fopen("output2.txt","rb");
     long long chunk_extra=numbytes;
     /* Get the number of bytes */
      fseek(infile2, 0L, SEEK_END);
@@ -706,6 +817,7 @@ int main(){
     long long chunk_size2 =LZSS_decompress(buffer3, numbytes, buffer4,chunk_extra);
     //std::cout<<numbytes<<chunk_extra<<chunk_size<<endl;
     FILE *f2=fopen("Decompressed.txt","w");
+ 
     fwrite(buffer4, 1, chunk_extra , f2);
     fclose(f2);
     delete[]buffer3;
