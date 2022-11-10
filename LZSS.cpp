@@ -18,10 +18,8 @@
 
 // C++ program to find out execution time of
 // of functions
-#include <algorithm>
-#include <chrono>
-#include <iostream>
-#include<vector>
+#include <time.h>
+
 
 using namespace std;
 #define FASTLZ_VERSION 0x000500
@@ -667,8 +665,12 @@ int LZSS_compress_level(int level, const void* input, int length, void* output) 
 
 int main(){
   //------------Compress---------------
-    FILE* infile =fopen("output.txt","r");
-    //FILE* infile =fopen("2CylinderEngine.obj","r");
+ 
+    clock_t tStart = clock();
+ 
+ 
+    //FILE* infile =fopen("output.txt","r");
+    FILE* infile =fopen("2CylinderEngine.obj","r");
     /* Get the number of bytes */
     
      fseek(infile, 0L, SEEK_END);
@@ -823,6 +825,9 @@ int main(){
     delete[]buffer3;
     delete[]buffer4;
     fclose(infile2);
+       /* Do your stuff here */
+    printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+ 
     return 0;
 
 }
