@@ -1,5 +1,6 @@
 #include<iostream>
 #include <thread>
+#include <vector>
 using namespace std;
 // void test(int x){
 //     cout<<"Thread"<<endl;
@@ -8,12 +9,18 @@ using namespace std;
 int main(){
     
     auto lambda=[](int x){
-    cout<<"Thread"<<endl;
+    cout<<"Thread"<<this_thread::get_id<<endl;
     cout<<"Arg: "<<x<<endl;
-    };
+    };  vector<thread> threads;
     // std::thread myThread(&test,100);
-    std::thread myThread(lambda,100);
-    myThread.join();
+    for(int i=0;i<10;i++){
+        threads.push_back( thread  (lambda,i));
+        threads[i].join();
+    }
+    
+  
+    // myThread.join();
+
     // The function returns when the thread execution has completed.
 
     // This synchronizes the moment this function returns with the completion of 
