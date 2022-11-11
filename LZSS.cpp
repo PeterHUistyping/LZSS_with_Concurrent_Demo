@@ -32,7 +32,7 @@ using namespace std;
 
 #define FASTLZ_VERSION_STRING "0.5.0"
 
- const int num_threads=10;
+ const int num_threads=1;
 /*
  * Always check for bound when decompressing.
  * Generally it is best to leave it defined.
@@ -668,7 +668,7 @@ int LZSS_compress_level(int level, const void* input, int length, void* output) 
 
 int main(){
   //------------Compress---------------
-    FILE* infile =fopen("output.txt","r");
+    FILE* infile =fopen("2CylinderEngine.obj","r");
     //FILE* infile =fopen("2CylinderEngine.obj","r");
     /* Get the number of bytes */
     
@@ -685,7 +685,6 @@ int main(){
     assert(each_numbytes*(num_threads-1)+last_numbytes==numbytes);
     assert(last_numbytes>=each_numbytes);
     unsigned char buffer[num_threads][last_numbytes];
-
     unsigned char buffer2[num_threads][last_numbytes];
     const int last_i=num_threads-1;
   //  for(int i=0;i<num_threads-1;i++){
@@ -715,10 +714,14 @@ int main(){
     FILE *f=fopen("output2.txt","wb");
     //std::cout<<buffer2[0];
       // cout<<chunk_size;
+      long long count_total=0;
     for(int i=0;i<num_threads-1;i++){  
       fwrite(buffer2[i], 1, chunk_size[i], f);
+      count_total+=chunk_size[i];
     }
     fwrite(buffer2[last_i], 1, chunk_size[last_i], f);
+    count_total+=chunk_size[last_i];
+    cout<<count_total;
     fclose(f);
     // for(int i=0;i<num_threads;i++){
     //     delete buffer[i];
@@ -742,27 +745,32 @@ int main(){
  
     // unsigned char* buffer3 = new unsigned char[numbytes2];
     // unsigned char* buffer4 = new unsigned char[chunk_extra+10];
-    unsigned char buffer3[num_threads][last_numbytes];
-
+    unsigned char buffer3[num_threads][last_numbytes];//!!To Do Jacob: After Decompression, file becomes bigger
     unsigned char buffer4[num_threads][last_numbytes];
 
 
     for(int i=0;i<num_threads-1;i++){
       fread(buffer3[i], sizeof(char), chunk_size[i], infile2);
     }
+    fread(buffer3[last_i], sizeof(char), chunk_size[last_i], infile2);
 
-    
     // FILE *f2=fopen("Decompressed.txt","wb");
     // fwrite(buffer3, 1, numbytes2 , f2);
     // fclose(f2);
-    long long chunk_size2 =LZSS_decompress(buffer3, numbytes, buffer4,chunk_extra);
+  FILE *f2=fopen("Decompressed.txt","w");
+   long long chunk_size2[num_threads]; 
+    for(int i=0;i<num_threads-1;i++){
+       chunk_size2[i] =LZSS_decompress(buffer3[i],chunk_size[i] , buffer4[i],each_numbytes); 
+       assert(chunk_size2[i]==each_numbytes);
+       fwrite(buffer4[i], 1, each_numbytes , f2);
+    }
+    chunk_size2[last_i] =LZSS_decompress(buffer3[last_i],chunk_size[last_i] , buffer4[last_i],last_numbytes);
     //std::cout<<numbytes<<chunk_extra<<chunk_size<<endl;
-    FILE *f2=fopen("Decompressed.txt","w");
- 
-    fwrite(buffer4, 1, chunk_extra , f2);
+     assert(chunk_size2[last_i]==last_numbytes);
+    fwrite(buffer4[last_i], 1, last_numbytes , f2);
     fclose(f2);
-    delete[]buffer3;
-    delete[]buffer4;
+    // delete[]buffer3;
+    // delete[]buffer4;
     fclose(infile2);
    
     return 0;
