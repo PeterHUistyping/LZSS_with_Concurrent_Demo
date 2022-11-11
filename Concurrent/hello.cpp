@@ -8,19 +8,30 @@ using namespace std;
 // }
 int main(){
     const int num_threads=10;
-    auto lambda=[](int x){
-    cout<<"Thread"<<&this_thread::get_id<<endl;
-    cout<<"Arg: "<<x<<endl;
-    };  vector<thread> threads;
-    // std::thread myThread(&test,100);
-    for(int i=0;i<num_threads;i++){
-        threads.push_back( thread  (lambda,i));
+    vector<int> res;
+    for(int i=0;i<num_threads+1;i++){
+        res.push_back(0);
         // threads[i].join();
     }
-    for(int i=0;i<num_threads;i++){
-        threads[i].join();
+    auto lambda=[&res](int tid){
+    cout<<"Thread"<<&this_thread::get_id<<endl;
+    cout<<"Arg: "<<tid<<endl;
+    //unsigned long long num_th=  std::hash<std::thread::id>{}(std::this_thread::get_id());
+    res[tid]=tid;
+    };  
+    vector<thread> threads;
+    // std::thread myThread(&test,100);
+    for(int tid=0;tid<num_threads;tid++){
+        threads.push_back( thread  (lambda,tid));
+        // threads[i].join();
     }
-  
+    for(int tid=0;tid<num_threads;tid++){
+        threads[tid].join();
+    }
+      for(int i=0;i<num_threads+1;i++){
+        cout<<res[i];
+        // threads[i].join();
+    }
     // myThread.join();
 
     // The function returns when the thread execution has completed.

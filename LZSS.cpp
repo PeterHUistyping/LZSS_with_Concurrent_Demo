@@ -32,6 +32,7 @@ using namespace std;
 
 #define FASTLZ_VERSION_STRING "0.5.0"
 
+ const int num_threads=10;
 /*
  * Always check for bound when decompressing.
  * Generally it is best to leave it defined.
@@ -678,151 +679,80 @@ int main(){
     // the beginning of the file */
      fseek(infile, 0L, SEEK_SET);
     // read_chunk_header(infile,  &numbytes,  &chunk_extra);
- 
-    unsigned char* buffer = new unsigned char[numbytes];
-    unsigned char* buffer_rev = new unsigned char[numbytes];
-
-    unsigned char* buffer2 = new unsigned char[numbytes+10];
-
-    fread(buffer, sizeof(char), numbytes, infile);
-    fclose(infile);
-    // for(long long i=0;i<numbytes;i++){
-    //   buffer_rev[i]=buffer[numbytes-i];
-    // }
-    long long count=0;
-    for(long long i=0;i<numbytes;i++){  
-      buffer_rev[i]=buffer[i];
-      if(buffer[i]==0){count++;}
-      
+    //unsigned char* buffer[num_threads];
+    long long each_numbytes=numbytes/num_threads;
+    long long last_numbytes=each_numbytes+numbytes%num_threads;
+    unsigned char buffer[num_threads][last_numbytes];
+    assert(each_numbytes*(num_threads-1)+last_numbytes==numbytes);
+  //  for(int i=0;i<num_threads-1;i++){
+  //     buffer[i] = new unsigned char[numbytes];
+  //  }
+    // buffer[num_threads-1]=new unsigned char[numbytes];
+    //unsigned char* buffer_rev = new unsigned char[numbytes];
+    const int last_i=num_threads-1;
+    unsigned char buffer2[num_threads][last_numbytes];
+   
+    for(int i=0;i<num_threads-1;i++){
+      fread(buffer[i], sizeof(char), each_numbytes, infile);
     }
-    cout<<count<<endl<<numbytes;
+    fread(buffer[last_i], sizeof(char), last_numbytes, infile);
+    fclose(infile);
+    // cout<<count<<endl<<numbytes;
+    // FILE *f4=fopen("C2.txt","wb");
+    //  fwrite(buffer, 1, numbytes , f4);
+    //  fclose(f4);
+
+    long long chunk_size[num_threads];
+    for(int i=0;i<num_threads-1;i++){  
+      chunk_size[i]=LZSS_compress_level(1,buffer[i], each_numbytes, buffer2[i]);
+    }
+    chunk_size[last_i]=LZSS_compress_level(1,buffer[last_i], each_numbytes, buffer2[last_i]);
     
-//      for(long long i=0;i<numbytes-1;i++){
-//       int a,b,c,d,e,ff,g,h;
-//       a=buffer_rev[i]>>7;
-//       a=a&1;
-//       b=buffer_rev[i]>>6;
-//       b=b&1;
-//       c=buffer_rev[i]>>5;
-//       c=c&1;
-//       d=buffer_rev[i]>>4;
-//       d=d&1;
-//       e=buffer_rev[i]>>3;
-//       e=e&1;
-//       ff=buffer_rev[i]>>2;
-//       ff=ff&1;
-//       g=buffer_rev[i]>>1;
-//       g=g&1;
-//       h=buffer_rev[i]&1;
-// //-----------------------
-//       int a1,b1,c1,d1,e1,f1,g1,h1;
-//       i++;
-//       a1=buffer_rev[i]>>7;
-//       a1=a1&1;
-//       b1=buffer_rev[i]>>6;
-//       b1=b1&1;
-//       c1=buffer_rev[i]>>5;
-//       c1=c1&1;
-//       d1=buffer_rev[i]>>4;
-//       d1=d1&1;
-//       e1=buffer_rev[i]>>3;
-//       e1=e1&1;
-//       f1=buffer_rev[i]>>2;
-//       f1=f1&1;
-//       g1=buffer_rev[i]>>1;
-//       g1=g&1;
-//       h1=buffer_rev[i]&1;
-
-//       buffer_rev[i--]= (a<<7)+(e<<6)+(a1<<5)+(e1<<4)+(b<<3)+(ff<<2)+(b1<<1)+f1;
-//       buffer_rev[i++]=( c<<7)+(g<<6)+(c1<<5)+(g1<<4)+(d<<3)+(h<<2)+(d1<<1)+h1;
-     
-//     }
-
-//     long long change=numbytes/2;
-//     for(long long i=0;i<change;i++){
-//       int a,b,c,d,e,ff,g,h;
-//       long long temp=i;
-//       a=buffer_rev[i]>>7;
-//       a=a&1;
-//       b=buffer_rev[i]>>6;
-//       b=b&1;
-//       c=buffer_rev[i]>>5;
-//       c=c&1;
-//       d=buffer_rev[i]>>4;
-//       d=d&1;
-//       e=buffer_rev[i]>>3;
-//       e=e&1;
-//       ff=buffer_rev[i]>>2;
-//       ff=ff&1;
-//       g=buffer_rev[i]>>1;
-//       g=g&1;
-//       h=buffer_rev[i]&1;
-// //-----------------------
-//       int a1,b1,c1,d1,e1,f1,g1,h1;
-//       i=numbytes-i;
-//       a1=buffer_rev[i]>>7;
-//       a1=a1&1;
-//       b1=buffer_rev[i]>>6;
-//       b1=b1&1;
-//       c1=buffer_rev[i]>>5;
-//       c1=c1&1;
-//       d1=buffer_rev[i]>>4;
-//       d1=d1&1;
-//       e1=buffer_rev[i]>>3;
-//       e1=e1&1;
-//       f1=buffer_rev[i]>>2;
-//       f1=f1&1;
-//       g1=buffer_rev[i]>>1;
-//       g1=g&1;
-//       h1=buffer_rev[i]&1;
-//       buffer_rev[i]= (a<<7)+(e<<6)+(a1<<5)+(e1<<4)+(b<<3)+(ff<<2)+(b1<<1)+f1;
-//       i=temp;
-//       buffer_rev[i]=( c<<7)+(g<<6)+(c1<<5)+(g1<<4)+(d<<3)+(h<<2)+(d1<<1)+h1;
-     
-//     }
-    
-     FILE *f4=fopen("C2.txt","wb");
-     fwrite(buffer_rev, 1, numbytes , f4);
-     fclose(f4);
-
-    long long chunk_size =LZSS_compress_level(1,buffer_rev, numbytes, buffer2);
     //std::cout<<numbytes<<chunk_size<<std::endl;
     FILE *f=fopen("output2.txt","wb");
     //std::cout<<buffer2[0];
       // cout<<chunk_size;
-    fwrite(buffer2, 1, chunk_size, f);
+    for(int i=0;i<num_threads-1;i++){  
+      fwrite(buffer2[i], 1, chunk_size[i], f);
+    }
+    fwrite(buffer2[last_i], 1, chunk_size[last_i], f);
     fclose(f);
-    delete[]buffer;
-    delete[]buffer2;
+    // for(int i=0;i<num_threads;i++){
+    //     delete buffer[i];
+    //     delete buffer2[i];
+    // }
+    
     //debug_readin();
 
-  //------------Decompress---------------
-    FILE* infile2 =fopen("output2.txt","rb");
-    long long chunk_extra=numbytes;
-    /* Get the number of bytes */
-     fseek(infile2, 0L, SEEK_END);
-    const long long numbytes2 = ftell(infile2);
+  // /*
+  // //------------Decompress---------------
+  //   FILE* infile2 =fopen("output2.txt","rb");
+  //   long long chunk_extra=numbytes;
+  //   /* Get the number of bytes */
+  //    fseek(infile2, 0L, SEEK_END);
+  //   const long long numbytes2 = ftell(infile2);
     
-    /* reset the file position indicator to 
-     the beginning of the file */
-     fseek(infile2, 0L, SEEK_SET);
+  //   /* reset the file position indicator to 
+  //    the beginning of the file */
+  //    fseek(infile2, 0L, SEEK_SET);
    
  
-    unsigned char* buffer3 = new unsigned char[numbytes2];
-    unsigned char* buffer4 = new unsigned char[chunk_extra+10];
-    fread(buffer3, sizeof(char), numbytes2, infile2);
-    // FILE *f2=fopen("Decompressed.txt","wb");
-    // fwrite(buffer3, 1, numbytes2 , f2);
-    // fclose(f2);
-    long long chunk_size2 =LZSS_decompress(buffer3, numbytes, buffer4,chunk_extra);
-    //std::cout<<numbytes<<chunk_extra<<chunk_size<<endl;
-    FILE *f2=fopen("Decompressed.txt","w");
+  //   unsigned char* buffer3 = new unsigned char[numbytes2];
+  //   unsigned char* buffer4 = new unsigned char[chunk_extra+10];
+  //   fread(buffer3, sizeof(char), numbytes2, infile2);
+  //   // FILE *f2=fopen("Decompressed.txt","wb");
+  //   // fwrite(buffer3, 1, numbytes2 , f2);
+  //   // fclose(f2);
+  //   long long chunk_size2 =LZSS_decompress(buffer3, numbytes, buffer4,chunk_extra);
+  //   //std::cout<<numbytes<<chunk_extra<<chunk_size<<endl;
+  //   FILE *f2=fopen("Decompressed.txt","w");
  
-    fwrite(buffer4, 1, chunk_extra , f2);
-    fclose(f2);
-    delete[]buffer3;
-    delete[]buffer4;
-    fclose(infile2);
+  //   fwrite(buffer4, 1, chunk_extra , f2);
+  //   fclose(f2);
+  //   delete[]buffer3;
+  //   delete[]buffer4;
+  //   fclose(infile2);
+   
     return 0;
 
 }

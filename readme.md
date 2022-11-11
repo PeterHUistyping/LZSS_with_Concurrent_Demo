@@ -8,6 +8,8 @@ Ensure when decompressing, chunk_extra=numbytes;
 ## Update
 Compress / Decompress\
 Using namespace std;
+Updated Concurrent implementation
+	Unit Reading of I/O
 ## Fast_LZ77
 
 ### Compression Algorithm (Explained by a Demo)
