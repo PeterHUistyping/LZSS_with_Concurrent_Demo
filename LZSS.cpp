@@ -682,15 +682,18 @@ int main(){
     //unsigned char* buffer[num_threads];
     long long each_numbytes=numbytes/num_threads;
     long long last_numbytes=each_numbytes+numbytes%num_threads;
-    unsigned char buffer[num_threads][last_numbytes];
     assert(each_numbytes*(num_threads-1)+last_numbytes==numbytes);
+    assert(last_numbytes>=each_numbytes);
+    unsigned char buffer[num_threads][last_numbytes];
+
+    unsigned char buffer2[num_threads][last_numbytes];
+    const int last_i=num_threads-1;
   //  for(int i=0;i<num_threads-1;i++){
   //     buffer[i] = new unsigned char[numbytes];
   //  }
     // buffer[num_threads-1]=new unsigned char[numbytes];
     //unsigned char* buffer_rev = new unsigned char[numbytes];
-    const int last_i=num_threads-1;
-    unsigned char buffer2[num_threads][last_numbytes];
+ 
    
     for(int i=0;i<num_threads-1;i++){
       fread(buffer[i], sizeof(char), each_numbytes, infile);
@@ -706,7 +709,7 @@ int main(){
     for(int i=0;i<num_threads-1;i++){  
       chunk_size[i]=LZSS_compress_level(1,buffer[i], each_numbytes, buffer2[i]);
     }
-    chunk_size[last_i]=LZSS_compress_level(1,buffer[last_i], each_numbytes, buffer2[last_i]);
+    chunk_size[last_i]=LZSS_compress_level(1,buffer[last_i], last_numbytes, buffer2[last_i]);
     
     //std::cout<<numbytes<<chunk_size<<std::endl;
     FILE *f=fopen("output2.txt","wb");
@@ -724,34 +727,43 @@ int main(){
     
     //debug_readin();
 
-  // /*
-  // //------------Decompress---------------
-  //   FILE* infile2 =fopen("output2.txt","rb");
-  //   long long chunk_extra=numbytes;
-  //   /* Get the number of bytes */
-  //    fseek(infile2, 0L, SEEK_END);
-  //   const long long numbytes2 = ftell(infile2);
+  
+  //------------Decompress---------------
+    FILE* infile2 =fopen("output2.txt","rb");
+    long long chunk_extra=numbytes;
+    /* Get the number of bytes */
+    //  fseek(infile2, 0L, SEEK_END);
+    // const long long numbytes2 = ftell(infile2);
     
-  //   /* reset the file position indicator to 
-  //    the beginning of the file */
-  //    fseek(infile2, 0L, SEEK_SET);
+    /* reset the file position indicator to 
+     the beginning of the file */
+     fseek(infile2, 0L, SEEK_SET);
    
  
-  //   unsigned char* buffer3 = new unsigned char[numbytes2];
-  //   unsigned char* buffer4 = new unsigned char[chunk_extra+10];
-  //   fread(buffer3, sizeof(char), numbytes2, infile2);
-  //   // FILE *f2=fopen("Decompressed.txt","wb");
-  //   // fwrite(buffer3, 1, numbytes2 , f2);
-  //   // fclose(f2);
-  //   long long chunk_size2 =LZSS_decompress(buffer3, numbytes, buffer4,chunk_extra);
-  //   //std::cout<<numbytes<<chunk_extra<<chunk_size<<endl;
-  //   FILE *f2=fopen("Decompressed.txt","w");
+    // unsigned char* buffer3 = new unsigned char[numbytes2];
+    // unsigned char* buffer4 = new unsigned char[chunk_extra+10];
+    unsigned char buffer3[num_threads][last_numbytes];
+
+    unsigned char buffer4[num_threads][last_numbytes];
+
+
+    for(int i=0;i<num_threads-1;i++){
+      fread(buffer3[i], sizeof(char), chunk_size[i], infile2);
+    }
+
+    
+    // FILE *f2=fopen("Decompressed.txt","wb");
+    // fwrite(buffer3, 1, numbytes2 , f2);
+    // fclose(f2);
+    long long chunk_size2 =LZSS_decompress(buffer3, numbytes, buffer4,chunk_extra);
+    //std::cout<<numbytes<<chunk_extra<<chunk_size<<endl;
+    FILE *f2=fopen("Decompressed.txt","w");
  
-  //   fwrite(buffer4, 1, chunk_extra , f2);
-  //   fclose(f2);
-  //   delete[]buffer3;
-  //   delete[]buffer4;
-  //   fclose(infile2);
+    fwrite(buffer4, 1, chunk_extra , f2);
+    fclose(f2);
+    delete[]buffer3;
+    delete[]buffer4;
+    fclose(infile2);
    
     return 0;
 
