@@ -683,7 +683,7 @@ int main(){
     // read_chunk_header(infile,  &numbytes,  &chunk_extra);
     //unsigned char* buffer[num_threads];
     long long each_numbytes=numbytes/num_threads;
-    long long last_numbytes=each_numbytes+numbytes%num_threads;
+    const long long last_numbytes=each_numbytes+numbytes%num_threads;
     assert(each_numbytes*(num_threads-1)+last_numbytes==numbytes);
     assert(last_numbytes>=each_numbytes);
     unsigned char buffer[num_threads][last_numbytes];
@@ -747,8 +747,9 @@ int main(){
  
     // unsigned char* buffer3 = new unsigned char[numbytes2];
     // unsigned char* buffer4 = new unsigned char[chunk_extra+10];
-    unsigned char buffer3[num_threads][last_numbytes];//!!To Do Jacob: After Decompression, file becomes bigger
-    unsigned char buffer4[num_threads][last_numbytes];
+    const long long second_arg=1000000;
+    unsigned char buffer3[num_threads][second_arg];//!!To Do Jacob: After Decompression, file becomes bigger
+    unsigned char buffer4[num_threads][second_arg];
 
 
     for(int tid=0;tid<num_threads-1;tid++){
