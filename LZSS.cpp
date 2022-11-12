@@ -748,7 +748,7 @@ int main(){
     // unsigned char* buffer3 = new unsigned char[numbytes2];
     // unsigned char* buffer4 = new unsigned char[chunk_extra+10];
     unsigned char buffer3[num_threads][last_numbytes];//!!To Do Jacob: After Decompression, file becomes bigger
-    // unsigned char buffer4[num_threads][last_numbytes];
+    unsigned char buffer4[num_threads][last_numbytes];
 
 
     for(int tid=0;tid<num_threads-1;tid++){
@@ -767,23 +767,36 @@ int main(){
 
 
    vector<thread> threads;
+     long long chunk_size2[num_threads]; 
+    //one-D array
+  
+    // unsigned char buffer3_one[num_threads*last_numbytes];//!!To Do Jacob: After Decompression, file becomes bigger
+    // unsigned char buffer4[num_threads*last_numbytes];   
 
-   long long chunk_size2[num_threads]; 
-    unsigned char buffer3_one[num_threads*last_numbytes];//!!To Do Jacob: After Decompression, file becomes bigger
-    unsigned char buffer4[num_threads*last_numbytes];
-  for(int row=0;row<num_threads;row++){
-    for(int col=0;col<last_numbytes;col++){
-        buffer3_one[row*last_numbytes+col]=buffer3[row][col];
-    }
-  }
+  //    for(int row=0;row<num_threads;row++){
+  //   for(int col=0;col<last_numbytes;col++){
+  //       buffer3_one[row*last_numbytes+col]=buffer3[row][col];
+  //   }
+  // }
+    // auto lambda=[&buffer3_one,&buffer4,&last_numbytes,&chunk_size,&chunk_size2,& original_size,&f2](int tid){
+    //   chunk_size2[tid] =LZSS_decompress((void*)buffer3_one[tid],chunk_size[tid] , (void*) buffer4[tid*last_numbytes],original_size[tid]); 
+    //   //assert(chunk_size2[tid]==original_size[tid]);
+    //   fwrite((void*)buffer4[tid*last_numbytes], 1, original_size[tid] , f2);
+    // };  
 
-    auto lambda=[&buffer3_one,&buffer4,&last_numbytes,&chunk_size,&chunk_size2,& original_size,&f2](int tid){
-      chunk_size2[tid] =LZSS_decompress((void*)buffer3_one[tid],chunk_size[tid] , (void*) buffer4[tid*last_numbytes],original_size[tid]); 
+    //two-D array
+    // unsigned char buffer3[num_threads][last_numbytes];//!!To Do Jacob: After Decompression, file becomes bigger
+    // unsigned char buffer4[num_threads][last_numbytes];
+    
+    auto lambda=[&buffer3,&buffer4,&last_numbytes,&chunk_size,&chunk_size2,& original_size,&f2](int tid){
+      chunk_size2[tid] =LZSS_decompress(buffer3[tid],chunk_size[tid] , buffer4[tid],original_size[tid]); 
       //assert(chunk_size2[tid]==original_size[tid]);
-      fwrite((void*)buffer4[tid*last_numbytes], 1, original_size[tid] , f2);
+      fwrite((void*)buffer4[tid], 1, original_size[tid] , f2);
     };  
+
+    
     for(int tid=0;tid<num_threads;tid++){
-       threads.push_back( thread  (lambda,tid));
+       threads.push_back(thread(lambda,tid));
     }
      for(int tid=0;tid<num_threads;tid++){
         threads[tid].join();
