@@ -748,19 +748,26 @@ int main(){
     /* reset the file position indicator to 
      the beginning of the file */
      fseek(infile2, 0L, SEEK_SET);
-  
+
     // unsigned char* buffer3 = new unsigned char[numbytes2];
     // unsigned char* buffer4 = new unsigned char[chunk_extra+10];
-    const long long second_arg=1000000;
-    unsigned char buffer3[num_threads][second_arg];//!!To Do Jacob: After Decompression, file becomes bigger
-    unsigned char buffer4[num_threads][second_arg];
+    //const long long second_arg=1000000;
+    //using 2-D arrays
+    // unsigned char buffer3[num_threads][second_arg];//!!To Do Jacob: After Decompression, file becomes bigger
+    // unsigned char buffer4[num_threads][second_arg];
+    unsigned char* buffer5=new unsigned char [num_threads*(last_numbytes+100)];
+    unsigned char* buffer6=new unsigned char [num_threads*(last_numbytes+100)];
 
- 
 
-    for(int tid=0;tid<num_threads-1;tid++){
-      fread(buffer3[tid], sizeof(char), chunk_size[tid], infile2);
+
+    // for(int tid=0;tid<num_threads-1;tid++){
+    //   fread(buffer3[tid], sizeof(char), chunk_size[tid], infile2);
+    // }
+    int tid_used;
+    for(tid_used=0;tid_used<num_threads-1;tid_used++){
+      fread(buffer5+tid_used*each_numbytes, sizeof(char), chunk_size[tid_used], infile2);
     }
-    fread(buffer3[last_i], sizeof(char), chunk_size[last_i], infile2);
+    fread(buffer5+tid_used*each_numbytes, sizeof(char), chunk_size[last_i], infile2);
     long long original_size[num_threads];
     for(int tid=0;tid<num_threads-1;tid++){
         original_size[tid]=each_numbytes ;
@@ -769,10 +776,10 @@ int main(){
     // FILE *f2=fopen("Decompressed.txt","wb");
     // fwrite(buffer3, 1, numbytes2 , f2);
     // fclose(f2);
-  FILE *f2=fopen("Decompressed.txt","w");
+    FILE *f2=fopen("Decompressed.txt","w");
 
 
-   vector<thread> threads;
+    vector<thread> threads;
      long long chunk_size2[num_threads]; 
     
     //one-D array
@@ -800,7 +807,7 @@ int main(){
       chrono::time_point<std::chrono::system_clock> begin_time=     
                         std::chrono::system_clock::now();
       auto lambda=[&](int tid){
-      chunk_size2[tid] =LZSS_decompress(buffer3[tid],chunk_size[tid] , buffer4[tid],original_size[tid]); 
+      chunk_size2[tid] =LZSS_decompress(buffer5+tid*each_numbytes,chunk_size[tid] , buffer6+tid*each_numbytes,original_size[tid]); 
       //assert(chunk_size2[tid]==original_size[tid]);
     };  
     for(int tid=0;tid<num_threads;tid++){
@@ -816,9 +823,10 @@ int main(){
                 begin_time;
     
     printf("PrintDuration : duration_mili duration = %ld ms", (long)duration_mili.count());
-        for(int tid=0;tid<num_threads;tid++){
-          fwrite(buffer4[tid], 1, original_size[tid] , f2);
-        }
+    long long overall_bytes=each_numbytes*(num_threads-1)+last_numbytes;
+    assert(overall_bytes==numbytes);
+    fwrite(buffer6, 1, overall_bytes , f2);
+        
     // for(int tid=0;tid<num_threads;tid++){
     //    chunk_size2[tid] =LZSS_decompress(buffer3[tid],chunk_size[tid] , buffer4[tid],original_size[tid]); 
     //    assert(chunk_size2[tid]==original_size[tid]);
