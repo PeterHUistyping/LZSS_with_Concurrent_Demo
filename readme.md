@@ -5,12 +5,23 @@ Implemented from https://github.com/ariya/FastLZ
 Input.txt -> Output.txt -> Decompressed.txt\
 Open in Hex Editor (vscode extension)\
 Ensure when decompressing, chunk_extra=numbytes;
+
+In task.json
+```
+"args": [
+               //...add the following to increase the stack size  
+                "-Wl,-stack_size",
+                "-Wl,0x10000000"
+            ],
+```
 ## Update
 Compress / Decompress\
 Using namespace std;
 Updated Concurrent implementation
 	Unit Reading of I/O
 	Multiple Threads of Decompression
+## To Do
+const int num_threads=1; //bug
 ## Fast_LZ77
 
 ### Compression Algorithm (Explained by a Demo)

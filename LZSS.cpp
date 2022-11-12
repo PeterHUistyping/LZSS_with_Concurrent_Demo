@@ -33,7 +33,7 @@ using namespace std;
 
 #define FASTLZ_VERSION_STRING "0.5.0"
 
- const int num_threads=10;
+ const int num_threads=3;
 /*
  * Always check for bound when decompressing.
  * Generally it is best to leave it defined.
@@ -669,7 +669,7 @@ int LZSS_compress_level(int level, const void* input, int length, void* output) 
 
 int main(){
   //------------Compress---------------
-    clock_t tStart = clock();
+  
     FILE* infile =fopen("2CylinderEngine.obj","r");
     //FILE* infile =fopen("2CylinderEngine.obj","r");
     /* Get the number of bytes */
@@ -711,7 +711,7 @@ int main(){
       chunk_size[tid]=LZSS_compress_level(1,buffer[tid], each_numbytes, buffer2[tid]);
     }
     chunk_size[last_i]=LZSS_compress_level(1,buffer[last_i], last_numbytes, buffer2[last_i]);
-    
+    long long check=chunk_size[0];
     //std::cout<<numbytes<<chunk_size<<std::endl;
     FILE *f=fopen("output2.txt","wb");
     //std::cout<<buffer2[0];
@@ -743,14 +743,14 @@ int main(){
     /* reset the file position indicator to 
      the beginning of the file */
      fseek(infile2, 0L, SEEK_SET);
-   
- 
+  
     // unsigned char* buffer3 = new unsigned char[numbytes2];
     // unsigned char* buffer4 = new unsigned char[chunk_extra+10];
     const long long second_arg=1000000;
     unsigned char buffer3[num_threads][second_arg];//!!To Do Jacob: After Decompression, file becomes bigger
     unsigned char buffer4[num_threads][second_arg];
 
+ 
 
     for(int tid=0;tid<num_threads-1;tid++){
       fread(buffer3[tid], sizeof(char), chunk_size[tid], infile2);
@@ -769,6 +769,7 @@ int main(){
 
    vector<thread> threads;
      long long chunk_size2[num_threads]; 
+    
     //one-D array
   
     // unsigned char buffer3_one[num_threads*last_numbytes];//!!To Do Jacob: After Decompression, file becomes bigger
@@ -790,19 +791,22 @@ int main(){
     // unsigned char buffer4[num_threads][last_numbytes];
 
     // auto lambda=[&buffer3,&buffer4,&last_numbytes,&chunk_size,&chunk_size2,& original_size,&f2](int tid){
+      clock_t tStart = clock();
       auto lambda=[&](int tid){
       chunk_size2[tid] =LZSS_decompress(buffer3[tid],chunk_size[tid] , buffer4[tid],original_size[tid]); 
       //assert(chunk_size2[tid]==original_size[tid]);
-      fwrite(buffer4[tid], 1, original_size[tid] , f2);
     };  
-
-    
     for(int tid=0;tid<num_threads;tid++){
        threads.push_back(thread(lambda,tid));
     }
      for(int tid=0;tid<num_threads;tid++){
         threads[tid].join();
     }
+        //printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+        printf("Time taken: %.2fs\n", (double)(clock() - tStart)/1000);
+        for(int tid=0;tid<num_threads;tid++){
+          fwrite(buffer4[tid], 1, original_size[tid] , f2);
+        }
     // for(int tid=0;tid<num_threads;tid++){
     //    chunk_size2[tid] =LZSS_decompress(buffer3[tid],chunk_size[tid] , buffer4[tid],original_size[tid]); 
     //    assert(chunk_size2[tid]==original_size[tid]);
@@ -817,7 +821,7 @@ int main(){
     // delete[]buffer4;
     fclose(infile2);
          /* Do your stuff here */
-    printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+
     return 0;
 
 }
