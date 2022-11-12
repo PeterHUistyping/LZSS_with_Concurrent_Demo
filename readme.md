@@ -10,6 +10,7 @@ Compress / Decompress\
 Using namespace std;
 Updated Concurrent implementation
 	Unit Reading of I/O
+	Multiple Threads of Decompression
 ## Fast_LZ77
 
 ### Compression Algorithm (Explained by a Demo)
