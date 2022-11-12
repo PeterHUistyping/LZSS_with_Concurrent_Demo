@@ -4,7 +4,7 @@
   Copyright (C) 2005-2020 Ariya Hidayat <ariya.hidayat@gmail.com>
   ---------------------------------------------------------------
   With Comments and Documentation 
-  Deflate part
+  Concurrent Part written by PETERHu
   Copyright (C) PeterHUistyping
   ---------------------------------------------------------------
 */

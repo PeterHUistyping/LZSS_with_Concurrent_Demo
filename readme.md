@@ -31,7 +31,7 @@ chrono::time_point<std::chrono::system_clock> begin_time=
 Updated Concurrent implementation
 	Unit Reading of I/O
 	Multiple Threads of Decompression
-	
+	Output using one-dimensional array
 ## To Do
 const int num_threads=1; //bug
 ## Fast_LZ77
