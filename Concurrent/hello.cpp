@@ -13,14 +13,17 @@ int main(){
         res.push_back(0);
         // threads[i].join();
     }
-    auto lambda=[&res](int tid){
+     char buffer[10];
+    auto lambda=[&res, &buffer](int tid){
     cout<<"Thread"<<&this_thread::get_id<<endl;
     cout<<"Arg: "<<tid<<endl;
     //unsigned long long num_th=  std::hash<std::thread::id>{}(std::this_thread::get_id());
+    buffer[1]='s';
     res[tid]=tid;
     };  
     vector<thread> threads;
     // std::thread myThread(&test,100);
+   
     for(int tid=0;tid<num_threads;tid++){
         threads.push_back( thread  (lambda,tid));
         // threads[i].join();

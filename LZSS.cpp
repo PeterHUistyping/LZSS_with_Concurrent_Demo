@@ -22,7 +22,8 @@
 #include <chrono>
 #include <iostream>
 #include<vector>
-
+// threads
+#include<thread>
 using namespace std;
 #define FASTLZ_VERSION 0x000500
 
@@ -32,7 +33,7 @@ using namespace std;
 
 #define FASTLZ_VERSION_STRING "0.5.0"
 
- const int num_threads=1;
+ const int num_threads=10;
 /*
  * Always check for bound when decompressing.
  * Generally it is best to leave it defined.
@@ -695,8 +696,8 @@ int main(){
     //unsigned char* buffer_rev = new unsigned char[numbytes];
  
    
-    for(int i=0;i<num_threads-1;i++){
-      fread(buffer[i], sizeof(char), each_numbytes, infile);
+    for(int tid=0;tid<num_threads-1;tid++){
+      fread(buffer[tid], sizeof(char), each_numbytes, infile);
     }
     fread(buffer[last_i], sizeof(char), last_numbytes, infile);
     fclose(infile);
@@ -706,8 +707,8 @@ int main(){
     //  fclose(f4);
 
     long long chunk_size[num_threads];
-    for(int i=0;i<num_threads-1;i++){  
-      chunk_size[i]=LZSS_compress_level(1,buffer[i], each_numbytes, buffer2[i]);
+    for(int tid=0;tid<num_threads-1;tid++){  
+      chunk_size[tid]=LZSS_compress_level(1,buffer[tid], each_numbytes, buffer2[tid]);
     }
     chunk_size[last_i]=LZSS_compress_level(1,buffer[last_i], last_numbytes, buffer2[last_i]);
     
@@ -716,17 +717,17 @@ int main(){
     //std::cout<<buffer2[0];
       // cout<<chunk_size;
       long long count_total=0;
-    for(int i=0;i<num_threads-1;i++){  
-      fwrite(buffer2[i], 1, chunk_size[i], f);
-      count_total+=chunk_size[i];
+    for(int tid=0;tid<num_threads-1;tid++){  
+      fwrite(buffer2[tid], 1, chunk_size[tid], f);
+      count_total+=chunk_size[tid];
     }
     fwrite(buffer2[last_i], 1, chunk_size[last_i], f);
     count_total+=chunk_size[last_i];
     cout<<count_total;
     fclose(f);
-    // for(int i=0;i<num_threads;i++){
-    //     delete buffer[i];
-    //     delete buffer2[i];
+    // for(int tid=0;tid<num_threads;tid++){
+    //     delete buffer[tid];
+    //     delete buffer2[tid];
     // }
     
     //debug_readin();
@@ -747,28 +748,55 @@ int main(){
     // unsigned char* buffer3 = new unsigned char[numbytes2];
     // unsigned char* buffer4 = new unsigned char[chunk_extra+10];
     unsigned char buffer3[num_threads][last_numbytes];//!!To Do Jacob: After Decompression, file becomes bigger
-    unsigned char buffer4[num_threads][last_numbytes];
+    // unsigned char buffer4[num_threads][last_numbytes];
 
 
-    for(int i=0;i<num_threads-1;i++){
-      fread(buffer3[i], sizeof(char), chunk_size[i], infile2);
+    for(int tid=0;tid<num_threads-1;tid++){
+      fread(buffer3[tid], sizeof(char), chunk_size[tid], infile2);
     }
     fread(buffer3[last_i], sizeof(char), chunk_size[last_i], infile2);
-
+    long long original_size[num_threads];
+    for(int tid=0;tid<num_threads-1;tid++){
+        original_size[tid]=each_numbytes ;
+    }
+    original_size[last_i]=last_numbytes;
     // FILE *f2=fopen("Decompressed.txt","wb");
     // fwrite(buffer3, 1, numbytes2 , f2);
     // fclose(f2);
   FILE *f2=fopen("Decompressed.txt","w");
+
+
+   vector<thread> threads;
+
    long long chunk_size2[num_threads]; 
-    for(int i=0;i<num_threads-1;i++){
-       chunk_size2[i] =LZSS_decompress(buffer3[i],chunk_size[i] , buffer4[i],each_numbytes); 
-       assert(chunk_size2[i]==each_numbytes);
-       fwrite(buffer4[i], 1, each_numbytes , f2);
+    unsigned char buffer3_one[num_threads*last_numbytes];//!!To Do Jacob: After Decompression, file becomes bigger
+    unsigned char buffer4[num_threads*last_numbytes];
+  for(int row=0;row<num_threads;row++){
+    for(int col=0;col<last_numbytes;col++){
+        buffer3_one[row*last_numbytes+col]=buffer3[row][col];
     }
-    chunk_size2[last_i] =LZSS_decompress(buffer3[last_i],chunk_size[last_i] , buffer4[last_i],last_numbytes);
-    //std::cout<<numbytes<<chunk_extra<<chunk_size<<endl;
-     assert(chunk_size2[last_i]==last_numbytes);
-    fwrite(buffer4[last_i], 1, last_numbytes , f2);
+  }
+
+    auto lambda=[&buffer3_one,&buffer4,&last_numbytes,&chunk_size,&chunk_size2,& original_size,&f2](int tid){
+      chunk_size2[tid] =LZSS_decompress((void*)buffer3_one[tid],chunk_size[tid] , (void*) buffer4[tid*last_numbytes],original_size[tid]); 
+      //assert(chunk_size2[tid]==original_size[tid]);
+      fwrite((void*)buffer4[tid*last_numbytes], 1, original_size[tid] , f2);
+    };  
+    for(int tid=0;tid<num_threads;tid++){
+       threads.push_back( thread  (lambda,tid));
+    }
+     for(int tid=0;tid<num_threads;tid++){
+        threads[tid].join();
+    }
+    // for(int tid=0;tid<num_threads;tid++){
+    //    chunk_size2[tid] =LZSS_decompress(buffer3[tid],chunk_size[tid] , buffer4[tid],original_size[tid]); 
+    //    assert(chunk_size2[tid]==original_size[tid]);
+    //    fwrite(buffer4[tid], 1, original_size[tid] , f2);
+    // }
+    // chunk_size2[last_i] =LZSS_decompress(buffer3[last_i],chunk_size[last_i] , buffer4[last_i],last_numbytes);
+    // //std::cout<<numbytes<<chunk_extra<<chunk_size<<endl;
+    //  assert(chunk_size2[last_i]==last_numbytes);
+    // fwrite(buffer4[last_i], 1, last_numbytes , f2);
     fclose(f2);
     // delete[]buffer3;
     // delete[]buffer4;
