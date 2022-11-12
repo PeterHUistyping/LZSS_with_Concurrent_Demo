@@ -772,7 +772,9 @@ int main(){
     // delete[]buffer3;
     // delete[]buffer4;
     fclose(infile2);
-   
+         /* Do your stuff here */
+    printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+ 
     return 0;
 
 }
