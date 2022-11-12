@@ -787,11 +787,12 @@ int main(){
     //two-D array
     // unsigned char buffer3[num_threads][last_numbytes];//!!To Do Jacob: After Decompression, file becomes bigger
     // unsigned char buffer4[num_threads][last_numbytes];
-    
-    auto lambda=[&buffer3,&buffer4,&last_numbytes,&chunk_size,&chunk_size2,& original_size,&f2](int tid){
+
+    // auto lambda=[&buffer3,&buffer4,&last_numbytes,&chunk_size,&chunk_size2,& original_size,&f2](int tid){
+      auto lambda=[&](int tid){
       chunk_size2[tid] =LZSS_decompress(buffer3[tid],chunk_size[tid] , buffer4[tid],original_size[tid]); 
       //assert(chunk_size2[tid]==original_size[tid]);
-      fwrite((void*)buffer4[tid], 1, original_size[tid] , f2);
+      fwrite(buffer4[tid], 1, original_size[tid] , f2);
     };  
 
     
