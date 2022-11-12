@@ -24,7 +24,12 @@
 #include<vector>
 // threads
 #include<thread>
+#include<unistd.h>//mac sleep
 using namespace std;
+
+//time
+using chrono::high_resolution_clock;
+using chrono::milliseconds;
 #define FASTLZ_VERSION 0x000500
 
 #define FASTLZ_VERSION_MAJOR 0
@@ -33,7 +38,7 @@ using namespace std;
 
 #define FASTLZ_VERSION_STRING "0.5.0"
 
- const int num_threads=3;
+ const int num_threads=14;
 /*
  * Always check for bound when decompressing.
  * Generally it is best to leave it defined.
@@ -791,7 +796,9 @@ int main(){
     // unsigned char buffer4[num_threads][last_numbytes];
 
     // auto lambda=[&buffer3,&buffer4,&last_numbytes,&chunk_size,&chunk_size2,& original_size,&f2](int tid){
-      clock_t tStart = clock();
+      // clock_t tStart = clock(); //cpu
+      chrono::time_point<std::chrono::system_clock> begin_time=     
+                        std::chrono::system_clock::now();
       auto lambda=[&](int tid){
       chunk_size2[tid] =LZSS_decompress(buffer3[tid],chunk_size[tid] , buffer4[tid],original_size[tid]); 
       //assert(chunk_size2[tid]==original_size[tid]);
@@ -803,7 +810,12 @@ int main(){
         threads[tid].join();
     }
         //printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
-        printf("Time taken: %.2fs\n", (double)(clock() - tStart)/1000);
+        // printf("Time taken: %.2fs\n", (double)(clock() - tStart)/1000);//cpu time
+    auto end_time = std::chrono::system_clock::now();
+    chrono::duration<double, std::milli> duration_mili = end_time - 
+                begin_time;
+    
+    printf("PrintDuration : duration_mili duration = %ld ms", (long)duration_mili.count());
         for(int tid=0;tid<num_threads;tid++){
           fwrite(buffer4[tid], 1, original_size[tid] , f2);
         }

@@ -17,9 +17,21 @@ In task.json
 ## Update
 Compress / Decompress\
 Using namespace std;
+Record time spent:
+```
+chrono::time_point<std::chrono::system_clock> begin_time=     
+                        std::chrono::system_clock::now();
+    sleep(10);
+    auto end_time = std::chrono::system_clock::now();
+    chrono::duration<double, std::milli> duration_mili = end_time - 
+                begin_time;
+    
+    printf("PrintDuration : duration_mili duration = %ld ms", (long)duration_mili.count());
+```
 Updated Concurrent implementation
 	Unit Reading of I/O
 	Multiple Threads of Decompression
+	
 ## To Do
 const int num_threads=1; //bug
 ## Fast_LZ77
