@@ -669,7 +669,7 @@ int LZSS_compress_level(int level, const void* input, int length, void* output) 
 
 int main(){
   //------------Compress---------------
-     clock_t tStart = clock();
+    clock_t tStart = clock();
     FILE* infile =fopen("2CylinderEngine.obj","r");
     //FILE* infile =fopen("2CylinderEngine.obj","r");
     /* Get the number of bytes */
