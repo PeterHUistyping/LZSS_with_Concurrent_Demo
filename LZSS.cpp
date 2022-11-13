@@ -716,19 +716,20 @@ int main(){
       chunk_size[tid]=LZSS_compress_level(1,buffer[tid], each_numbytes, buffer2[tid]);
     }
     chunk_size[last_i]=LZSS_compress_level(1,buffer[last_i], last_numbytes, buffer2[last_i]);
-    long long check=chunk_size[0];
+    // long long check=chunk_size[0];
     //std::cout<<numbytes<<chunk_size<<std::endl;
     FILE *f=fopen("output2.txt","wb");
     //std::cout<<buffer2[0];
       // cout<<chunk_size;
       long long count_total=0;
     for(int tid=0;tid<num_threads-1;tid++){  
-      fwrite(buffer2[tid], 1, chunk_size[tid], f);
-      count_total+=chunk_size[tid];
+      fwrite(buffer2[tid], 1, chunk_size[tid], f); 
+      cout<<chunk_size[tid]<<endl;
+      // count_total+=chunk_size[tid];
     }
     fwrite(buffer2[last_i], 1, chunk_size[last_i], f);
     count_total+=chunk_size[last_i];
-    cout<<count_total;
+    cout<<count_total<<endl;
     fclose(f);
     // for(int tid=0;tid<num_threads;tid++){
     //     delete buffer[tid];
@@ -839,6 +840,8 @@ int main(){
     fclose(f2);
     // delete[]buffer3;
     // delete[]buffer4;
+    delete[]buffer3;
+    delete[]buffer4;
     fclose(infile2);
          /* Do your stuff here */
 
