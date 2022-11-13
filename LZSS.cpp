@@ -820,8 +820,7 @@ int main(){
         //printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
         // printf("Time taken: %.2fs\n", (double)(clock() - tStart)/1000);//cpu time
     auto end_time = std::chrono::system_clock::now();
-    chrono::duration<double, std::milli> duration_mili = end_time - 
-                begin_time;
+    chrono::duration<double, std::milli> duration_mili = end_time - begin_time;
     
     printf("PrintDuration : duration_mili duration = %ld ms", (long)duration_mili.count());
     long long overall_bytes=each_numbytes*(num_threads-1)+last_numbytes;
