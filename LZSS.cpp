@@ -124,7 +124,7 @@ void LZSS_Decom_once(){
 }
 
 int main(){
-    LZSS_Comp_once(); 
+    // LZSS_Comp_once(); 
     FILE* infile =fopen("2CylinderEngine.obj","rb");
     fseek(infile, 0L, SEEK_END);
     numbytes = ftell(infile);
@@ -170,7 +170,7 @@ int main(){
 
     delete [] buffer;
     delete [] buffer2;
-    LZSS_Decom_once();
+    // LZSS_Decom_once();
 
     FILE* infile2 =fopen("output2.txt","rb");
     long long numbytes=0,chunk_extra=0;
@@ -193,7 +193,7 @@ int main(){
     // // fclose(f);
     LZSS_Decoder Lzss_Decoder(buffer3, numbytes, buffer4);
         
-    long long chunk_size2 =Lzss_Decoder.Decompress();
+    long long chunk_size2 =Lzss_Decoder.level3();
     // long long chunk_size2 =Lzss_Decoder.level3();
     // //cout<<numbytes<<chunk_extra<<chunk_size<<endl;
     // //FILE *f=fopen(output_location.c_str(),"wb");

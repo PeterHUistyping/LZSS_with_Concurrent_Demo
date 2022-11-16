@@ -50,17 +50,18 @@ class LZSS_Decoder{
     ~LZSS_Decoder(){}
     int Decompress(){
       // marker for compression level 
-      int level =((*(   ubyte*)INPUT_) >>6)<<1)+ (((*(   ubyte*)INPUT_) >>7 ) <<1) + 1;
-      if (level == 1) {
-        level1();
+      // int level =s((*(   ubyte*)INPUT_) >>6)<<1)+ (((*(   ubyte*)INPUT_) >>7 ) <<1) + 1;
+      // if (level == 1) {
+      //   level1();
      
-      }
-      else if (level == 2) {
-        level2();
-      }
-      else if(level>=3){
-        level3();
-      }
+      // }
+      // else if (level == 2) {
+      //   level2();
+      // }
+      // else if(level>=3){
+      //   level3();
+      // }
+      
       //level !=2| level !=1, return 0
       return length_after; 
     }
