@@ -43,8 +43,8 @@ void write_chunk_header(FILE* f,  unsigned long long size) {
   fwrite(buffer, 4, 1, f);
 }
 void LZSS_Comp_once(){
-    FILE* infile =fopen("2CylinderEngine.obj","r");
-      fseek(infile, 0L, SEEK_END);
+    FILE* infile =fopen("2CylinderEngine.obj","rb");
+    fseek(infile, 0L, SEEK_END);
     numbytes = ftell(infile);
     //std::cout<<numbytes;
     // /* reset the file position indicator to 
@@ -53,14 +53,15 @@ void LZSS_Comp_once(){
     // read_chunk_header(infile,  &numbytes,  &chunk_extra);
     //unsigned char* buffer[num_threads];
 
-      fclose(infile);   
+  
         // int compress_level=2; //default using better
      unsigned char* buffer = new unsigned char[numbytes];
      unsigned char* buffer2 = new unsigned char[numbytes];
-    fread( buffer , 1,numbytes,infile);
-    // FILE *f=fopen("output_location","wb");
-    // fwrite(buffer, 1, res.size(), f);
-    // fclose(f);
+    fread(buffer,1,numbytes,infile);
+    fclose(infile);   
+    FILE *f2=fopen("output_location","wb");
+    fwrite(buffer, 1, numbytes, f2);
+    fclose(f2);
     // long long chunk_size =fastlz_compress_level(compress_level, buffer
     //  , res.size(), buffer2);
     LZSS_Encoder Lzss_Encoder(buffer, numbytes, buffer2);
@@ -82,7 +83,7 @@ void LZSS_Comp_once(){
 }
 
 void LZSS_Decom_once(){
-     FILE* infile =fopen("output2.txt","rb");
+    FILE* infile =fopen("output2.txt","rb");
     long long numbytes=0,chunk_extra=0;
     // /* Get the number of bytes */
     // // fseek(infile, 0L, SEEK_END);

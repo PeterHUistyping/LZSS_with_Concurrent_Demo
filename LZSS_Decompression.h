@@ -140,9 +140,9 @@ class LZSS_Decoder{
           match_len += 3;
 
           /* match from 16-bit distance */
-          if (code == 255) [[unlikely]]  //level 2 Extended Windows
-            if (offset == (31 << 8))[[likely]] {   // 1111 1111  |  W15-W8   |   W7-W0  
-              offset = (*input++) << 8;
+          if (code == 255) [[unlikely]]//level 2 Extended Windows 
+            if (offset == (31 << 8))[[likely]] { //Distinguish with level1
+              offset = (*input++) << 8;  // 1111 1111  |  W15-W8   |   W7-W0  
               offset += *input++;
               ref = output - offset - MAX_L2_Length - 1;
             }
@@ -182,8 +182,8 @@ class LZSS_Decoder{
 // | Extra Short match| M2-M0 11111 |- 1111 1111 |$   1111 1111  | 1111 1111 |  W15-W8   |   W7-W0   |           | 
 // | Extra Long match | 111   11111 |  M7-M0...  |-  1111 1111  |$ 1111 1111 | 1111 1111 |   W15-W8	 |   W7-W0   |
           /* match from 32-bit distance */
-          if (code == 255) [[unlikely]]
-            if (offset == (31 << 8))[[likely]] { //level 2-3
+          if (code == 255) [[unlikely]]{
+            if (offset == (31 << 8))[[likely]] {  //level 2-3
               offset = (*input++) << 8; //|$
               offset += *input++;                 //  W7-W0  
               if(offset != ((31 << 8)+31))[[likely]]{ //level 2 1111 1111 |   W15-W8	 |   W7-W0          
@@ -194,6 +194,7 @@ class LZSS_Decoder{
                 offset += *input++;//  W7-W0
                 ref = output - offset -65535- MAX_L2_Length-1-1;     
               }
+            }
           }
           this->mem_move(output, ref, match_len);
           output += match_len;

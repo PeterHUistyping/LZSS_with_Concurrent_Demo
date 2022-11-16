@@ -89,7 +89,7 @@ class LZSS_Encoder{
         return length_after; 
       }
       /* else length >  LEVEL1_MAX */
-        this->level3();
+        this->level2();
         return length_after;
     }
     int Compress(int level){
@@ -105,6 +105,7 @@ class LZSS_Encoder{
         this->level3();
         return length_after;
       }
+      return 0;
     }
     private:
       /* Copies the values of (count+1) bytes (MAX OF 256 bytes) from the location pointed by source to 
