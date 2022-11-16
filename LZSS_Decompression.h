@@ -37,6 +37,7 @@ class LZSS_Decoder{
          ubyte* ref; 
       uint match_len;
       ull offset;// distance from current position to references
+      int Window_Num; //level4
       int length_after;
   public:
     LZSS_Decoder(   void* INPUT, int length, void* OUTPUT):INPUT_(INPUT), input((   ubyte*)INPUT){
@@ -50,7 +51,7 @@ class LZSS_Decoder{
     ~LZSS_Decoder(){}
     int Decompress(){
       // marker for compression level 
-      int level =((*(   ubyte*)INPUT_) >>6)<<1)+ (((*(   ubyte*)INPUT_) >>7 ) <<1) + 1;
+      int level =(((*(ubyte*)INPUT_) >>6)<<1)+ (((*(ubyte*)INPUT_) >>7 ) <<1) + 1;
       if (level == 1) {
         level1();
      
@@ -64,7 +65,9 @@ class LZSS_Decoder{
       //level !=2| level !=1, return 0
       return length_after; 
     }
-      
+    void setWindowNum(long long & Window_num){ //level4
+      this->Window_Num=Window_num;
+    }  
   public:
       /* Copies the values of count bytes from the location pointed by source to 
     the memory block pointed by destination. Copying takes place as if an 
@@ -123,7 +126,7 @@ class LZSS_Decoder{
       length_after =output - (ubyte*)OUTPUT_;
     }
 
-    void level2() {
+    long long level2() {
       while (input < input_limit)[[likely]] {
         if (ctrl >= 0b00100000) { //Not lieteral run Level 2 Extended Windows* Short match
           match_len = (ctrl >> 5) - 1;  // M2-M0 high 3 bits
@@ -157,15 +160,11 @@ class LZSS_Decoder{
         ctrl = *input++;
       }
       length_after=output - (ubyte*)OUTPUT_;
+      return length_after;
     }
     long long level3() {
-      // bool is_longMatch;
       while (input < input_limit)[[likely]] {
         if (ctrl >= 32) { //Level 2 Extended Windows* Short match
-        if((input-(ubyte*)INPUT_)>=143775)
-        {
-            int a=1;
-        }
           match_len = (ctrl >> 5) - 1;
           // is_longMatch=false;
           offset = (ctrl & 31) << 8;
@@ -214,5 +213,60 @@ class LZSS_Decoder{
       length_after=output - (ubyte*)OUTPUT_;
       return length_after;
     }
+    
+    long long level4() {
+      // bool is_longMatch;
+      while (input < input_limit)[[likely]] {
+        if (ctrl >= 32) { //Level 2 Extended Windows* Short match
+          match_len = (ctrl >> 5) - 1;
+          // is_longMatch=false;
+          offset = (ctrl & 31) << 8;
+          ref = output - offset - 1;
+          ubyte code;
+          if (match_len == 7 - 1) do {//Level 2 Extended Windows* Long match
+              // is_longMatch=true;
+              code = *input++;    
+              match_len += code;
+            } while (code == 255);//Len left or Windows size not full
+          code = *input++; //|-
+          ref -= code;
+          match_len += 3;
+ 
+          
+          if (code == 255) [[unlikely]]{
+            if (offset == (31 << 8))[[likely]] {  //level 2
+              offset = (*input++) << 8; //|$
+              offset += *input++;                 //  W7-W0  
+              if(offset != ((1<<16)-1))[[likely]]{ //level 2 1111 1111 |   W15-W8	 |   W7-W0          
+                ref = output - offset - MAX_L2_Length - 1;
+              }
+              else{
+                for(int i=2;i<=Window_Num;i++){//level 3+
+                // if(offset)
+                 //level3 1111 1111  | 1111 1111 | 1111 1111 |   W15-W8	 |   W7-W0  
+                offset = (*input++) << 8; /// W15-W8
+                offset += *input++;//  W7-W0
+                ref = output - offset -65535 - MAX_L2_Length-1; 
+                //ref-(ubyte*)OUTPUT_;    
+               }
+                
+              
+              }
+            }
+          }
+          this->mem_move(output, ref, match_len);
+          output += match_len;
+        } else {
+          ctrl++;
+          memcpy(output, input, ctrl);
+          input += ctrl;
+          output += ctrl;
+        }
+        ctrl = *input++;
+      }
+      length_after=output - (ubyte*)OUTPUT_;
+      return length_after;
+    }
+
 
 };

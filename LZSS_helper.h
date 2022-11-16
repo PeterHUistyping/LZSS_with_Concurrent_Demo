@@ -26,6 +26,7 @@
 #pragma once
 #include <stdint.h>
 #include <string.h>
+#include <vector>
 using ubyte = uint8_t;
 using uint=uint32_t;
 using ull = uint64_t;
@@ -35,7 +36,7 @@ using ull = uint64_t;
 #define LEVEL1_MAX 8192*8 //65536
 #define HASH_SIZE (1 << 14)  //HASH_LOG 14
 #define Hash_Key_Masks (HASH_SIZE-1)
- 
+#define Extra_Window_Size 65535 //level4
 
 // Return a 8-byte unsigned integer from the current stream
 ull read_uint64(const void* ptr) { 

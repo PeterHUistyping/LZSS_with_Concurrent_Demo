@@ -8,7 +8,7 @@ long long numbytes;
 // unsigned char* buffer3 = new unsigned char[numbytes];
 
 void read_chunk_header(FILE* f,  long long* size,
-                        long long* extra) {
+                       long long * extra) { //level4
   unsigned char buffer[8];
   fread(buffer, 1, 8, f);
   *size = read_uint32(buffer ) & 0xffffffff;
@@ -94,7 +94,7 @@ void LZSS_Decom_once(){
     // // fseek(infile, 0L, SEEK_SET);
 
 
-    read_chunk_header(infile,  &numbytes,  &chunk_extra);
+// //    read_chunk_header(infile,  &numbytes,  &chunk_extra);
  
     unsigned char* buffer = new unsigned char[numbytes];
     unsigned char* buffer2 = new unsigned char[chunk_extra+10];
@@ -124,7 +124,7 @@ void LZSS_Decom_once(){
 }
 
 int main(){
-    LZSS_Comp_once(); 
+    // LZSS_Comp_once(); 
     FILE* infile =fopen("2CylinderEngine.obj","rb");
     fseek(infile, 0L, SEEK_END);
     numbytes = ftell(infile);
@@ -137,8 +137,8 @@ int main(){
 
   
         // int compress_level=2; //default using better
-     unsigned char* buffer = new unsigned char[numbytes];
-     unsigned char* buffer2 = new unsigned char[numbytes];
+    unsigned char* buffer = new unsigned char[numbytes];
+    unsigned char* buffer2 = new unsigned char[numbytes];
     fread(buffer,1,numbytes,infile);
     fclose(infile);   
     FILE *f2=fopen("output_location","wb");
@@ -152,15 +152,15 @@ int main(){
 
 
 
-     long long chunk_size =Lzss_Encoder.level4();
-
+     long long chunk_size =Lzss_Encoder.level3();
+     long long Window_Num=Lzss_Encoder.getWindowSize();//level 4
 
 
 
 
      FILE *f=fopen("output2.txt","wb");
 
-     write_chunk_header(f, chunk_size,numbytes );
+     write_chunk_header(f, chunk_size, Window_Num );//level 4  
      //cout<<res.size()<<chunk_size<<endl;
      fwrite(buffer2, 1, chunk_size, f);
      fclose(f);   
@@ -170,10 +170,10 @@ int main(){
 
     delete [] buffer;
     delete [] buffer2;
-    LZSS_Decom_once();
+    // LZSS_Decom_once();
 
     FILE* infile2 =fopen("output2.txt","rb");
-    long long numbytes=0,chunk_extra=0;
+    long long numbyte2=0,chunk_extra=0;
     // /* Get the number of bytes */
     // // fseek(infile, 0L, SEEK_END);
     // // const long long numbytes = ftell(infile);
@@ -182,18 +182,22 @@ int main(){
     // // the beginning of the file */
     // // fseek(infile, 0L, SEEK_SET);
 
-
-    read_chunk_header(infile2,  &numbytes,  &chunk_extra);
- 
-    unsigned char* buffer3 = new unsigned char[numbytes];
-    unsigned char* buffer4 = new unsigned char[chunk_extra+10];
-    fread(buffer, sizeof(char), numbytes, infile2);
+    //int Window_Num; //level 4
+    read_chunk_header(infile2,  &numbyte2,  &chunk_extra);
+    //    read_chunk_header(infile2,  &Window_Num );//level 4
+    unsigned char* buffer3 = new unsigned char[numbyte2];
+    unsigned char* buffer4 = new unsigned char[numbytes+10];
+    fread(buffer, sizeof(char), numbyte2, infile2);
     // // FILE *f=fopen(output_location.c_str(),"wb");
     // // fwrite(buffer, 1, numbytes , f);
     // // fclose(f);
-    LZSS_Decoder Lzss_Decoder(buffer3, numbytes, buffer4);
-        
-    long long chunk_size2 =Lzss_Decoder.Decompress();
+    LZSS_Decoder Lzss_Decoder(buffer3, numbyte2, buffer4);
+    // Lzss_Decoder.setWindowNum(Window_Num);//level4
+    long long w=2;
+     Lzss_Decoder.setWindowNum(w);//level4
+    cout<<Window_Num;
+    long long chunk_size2 =Lzss_Decoder.level3();
+ 
     // long long chunk_size2 =Lzss_Decoder.level3();
     // //cout<<numbytes<<chunk_extra<<chunk_size<<endl;
     // //FILE *f=fopen(output_location.c_str(),"wb");
