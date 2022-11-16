@@ -46,20 +46,22 @@ class HashTable{
 
 class LZSS_Encoder{
   private:
-    const void* INPUT_; 
+    void* INPUT_; 
     int LENGTH_;  //length of the block of data to be compressed
     void* OUTPUT_;
-    const ubyte* input; // pointer to input data
+      ubyte* input; // pointer to input data
+      ubyte* input1; // pointer to input data
     ubyte* output ; // pointer to output data
 
-    const ubyte* input_start;
-    const ubyte* input_bound;  
-    const ubyte* input_limit;  //?
+      ubyte* input_start;
+      ubyte* input_bound;  
+      ubyte* input_limit;  //?
 
     HashTable Hash; //initialized
     uint hash; // 0  - {(hash_size/1<<14)-1}
-    const ubyte* pivot ;// first of unwritten byte
-    const ubyte* ref; //pointer to ubyte (starting point of three bytes) of the same three bytes given
+      ubyte* pivot ;// first of unwritten byte
+    ubyte* ref; //pointer to ubyte (starting point of three bytes) of the same three bytes given
+    ubyte* ref1;
     uint sequence;// a sequence of 3 bytes from the third of the input data given.(For the first two, no need to implement)
   
     uint distance; //offset from current position to the reference 
@@ -69,7 +71,8 @@ class LZSS_Encoder{
     int length_after;
 
   public:
-    LZSS_Encoder(const void* INPUT, int length, void* OUTPUT_):INPUT_(INPUT), input((const ubyte*)INPUT),Hash(){
+    LZSS_Encoder(void* INPUT, int length, void* OUTPUT_): input((  ubyte*)INPUT),Hash(){
+      INPUT_=INPUT;
       this->LENGTH_=length;
       this->OUTPUT_=OUTPUT_;
       length_after=0;
@@ -107,11 +110,11 @@ class LZSS_Encoder{
       }
       return 0;
     }
-    private:
+    public:
       /* Copies the values of (count+1) bytes (MAX OF 256 bytes) from the location pointed by source to 
       the memory block pointed by destination.*/
-      void copy(ubyte* destination, const ubyte* source, uint count) {
-        const ull* src = (const ull*)source;//64Bytes
+      void copy(ubyte* destination,   ubyte* source, uint count) {
+          ull* src = (  ull*)source;//64Bytes
         ull* dest = (ull*)destination;
         *dest++ = *src++; //0-7
         if(count<16){ //8-15
@@ -132,7 +135,7 @@ class LZSS_Encoder{
        * @param destination
        * @return uint8_t* 
        */
-      ubyte* Literals_Output(uint runs, const ubyte* source, ubyte* destination) {
+      ubyte* Literals_Output(uint runs,   ubyte* source, ubyte* destination) {
         while (runs >0 ) { //COPY_MAX    32*8
           uint this_run =runs;
           if(runs>32) {
@@ -240,7 +243,8 @@ class LZSS_Encoder{
           }
         } else{ //level3
             if (len < 7) {//Level 3 Extended Windows* Short match
-            distance -= MAX_L2_Length;
+            distance -= MAX_L2_Length;          
+             distance -= 65535;
             output[index++] = (len << 5) + 0x1f;
             output[index++] = 0xff;
             output[index++] = 0xff; //0b 1111 1111
@@ -262,6 +266,40 @@ class LZSS_Encoder{
         }
         return &output[index];
       }
+      
+      ubyte* Match_Output4(uint len, uint distance, ubyte* output) {
+        --distance;
+        uint index=0;
+        if (distance < MAX_L2_Length) {
+          if (len < 7) {
+            output[index++] = (len << 5) + (distance >> 8);
+            output[index++] = (distance & 0xff);
+          } else {
+            output[index++] = (7 << 5) + (distance >> 8);
+            for (len -= 7; len >= 0xff; len -= 0xff) output[index++] = 0xff;
+            output[index++] = len;
+            output[index++] = (distance & 0xff);
+          }
+        } else {
+          /* still far away... */
+          if (len < 7) {//Level 2 Extended Windows* Short match
+            distance -= MAX_L2_Length;
+            output[index++] = (len << 5) + 0x1f;  //0b111 11111
+            output[index++] = 0xff;
+            output[index++] = distance >> 8;
+            output[index++] = distance & 0xff;
+          } else {//Level 2 Extended Windows* Long match
+            distance -= MAX_L2_Length;
+            output[index++] = (7 << 5) + 0x1f;  //0b111 11111
+            for (len -= 7; len >= 0xff; len -= 0xff) output[index++] = 0xff;
+            output[index++] = len;   //M7-M0...
+            output[index++] = 0xff;  //0b 1111 1111
+            output[index++] = distance >> 8;  //W15-W8
+            output[index++] = distance & 0xff; // W7-W0 
+          }
+        }
+        return &output[index];
+      }
       bool Matched_First_Every3Bytes(uint windows_size){
         sequence = read_uint32(input) & 0xffffff; //take every three bytes as a sequence  
         //(p[2] << 16) | (p[1] << 8) | p[0] from current input store consecutive 3 bytes.
@@ -269,6 +307,8 @@ class LZSS_Encoder{
         ref = input_start + Hash.table[hash];  //input_start+ uint16
         Hash.table[hash] = input - input_start;//update the current index to hash table
         distance = input - ref; //offset
+        input1=input;
+        ref1=ref;
         cmp = (__builtin_expect(!!(distance < windows_size), 1))  ? read_uint32(ref)  
                   & 0xffffff : 0x1000000;   
             //check distance < WINDOW SIZE 
@@ -314,7 +354,7 @@ class LZSS_Encoder{
         length_after= output - (ubyte*)OUTPUT_;
       }
 
-      void level2() {
+      long long level2() {
         while (input < input_limit)[[likely]] {
           // potential match
           while(input <= input_limit)[[likely]]{
@@ -349,8 +389,9 @@ class LZSS_Encoder{
         *(ubyte*)OUTPUT_ |= (1 << 6); // default is all 0s
 
         length_after= output - (ubyte*)OUTPUT_;
+         return length_after;
     }
-    void level3() {
+    long long level3() {
         while (input < input_limit)[[likely]] {
           // potential match
           while(input <= input_limit)[[likely]]{
@@ -378,6 +419,113 @@ class LZSS_Encoder{
           output = Literals_Output(input - pivot, pivot, output);
 
           match_len = match_cmp(ref + 3, input + 3, input_bound);
+          // output = Match_Output3( match_len, distance, output);
+          //
+         
+        {
+        --distance;
+        uint index=0;
+        if (distance < MAX_L2_Length) {
+          if (match_len < 7) {
+            output[index++] = (match_len << 5) + (distance >> 8);
+            output[index++] = (distance & 0xff);
+          } else {
+            output[index++] = (7 << 5) + (distance >> 8);
+            for (match_len -= 7; match_len >= 0xff; match_len -= 0xff) output[index++] = 0xff;
+            output[index++] = match_len;
+            output[index++] = (distance & 0xff);
+          }
+        } else if(distance<MAX_L2_Length+65535){
+          /* still far away... */
+          if (match_len < 7) {//Level 2 Extended Windows* Short match
+            distance -= MAX_L2_Length;
+            output[index++] = (match_len << 5) + 0x1f;  
+            output[index++] = 0xff;
+            output[index++] = distance >> 8;
+            output[index++] = distance & 0xff;
+          } else {//Level 2 Extended Windows* Long match
+            distance -= MAX_L2_Length;
+            output[index++] = (7 << 5) + 0x1f;
+            for (match_len -= 7; match_len >= 0xff; match_len -= 0xff) output[index++] = 0xff;
+            output[index++] = match_len;
+            output[index++] = 0xff;
+            output[index++] = distance >> 8;
+            output[index++] = distance & 0xff;
+          }
+        } else{ //level3
+            if (match_len < 7) {//Level 3 Extended Windows* Short match
+            distance -= MAX_L2_Length;
+            distance -= 65535;
+            output[index++] = (match_len << 5) + 0x1f;
+            output[index++] = 0xff;
+            output[index++] = 0xff; //0b 1111 1111
+            output[index++] = 0xff; //0b 1111 1111
+            output[index++] = distance >> 8;
+            output[index++] = distance & 0xff;
+          } else {//Level 3 Extended Windows* Long match
+
+
+          //ref-(ubyte*)INPUT_; 
+
+            distance -= MAX_L2_Length;
+            distance -= 65535;
+            output[index++] = (7 << 5) + 0x1f;
+            for (match_len -= 7; match_len >= 0xff; match_len -= 0xff) {output[index++] = 0xff;}
+            output[index++] = match_len;
+            output[index++] = 0xff;
+            output[index++] = 0xff; //0b 1111 1111
+            output[index++] = 0xff; //0b 1111 1111
+            output[index++] = distance >> 8;
+            output[index++] = distance & 0xff;
+          }
+        }
+      output+=index;
+      }
+          //
+          Update_Hash();
+
+          pivot = input;
+        }
+
+        last_num_bytes = (ubyte*)INPUT_ + LENGTH_ - pivot;
+        output = Literals_Output (last_num_bytes, pivot, output);
+
+        // id of this level
+        *(ubyte*)OUTPUT_ |= (1 << 7); // default is all 0s
+        length_after= output - (ubyte*)OUTPUT_;
+ 
+   
+        return length_after;
+    }
+          long long level4() {
+        while (input < input_limit)[[likely]] {
+          // potential match
+          while(input <= input_limit)[[likely]]{
+            if(Matched_First_Every3Bytes(65535 +65535 + MAX_L2_Length )) break;
+            ++input;
+          } // if not match to the previous,  continue to looping
+
+          if (input >= input_limit) [[unlikely]]break;
+            // if match to the previous one(>=3)
+
+          /* far, needs at least 5-byte match */
+          if (distance >= MAX_L2_Length) {
+            if (ref[3] != input[3] || ref[4] != input[4]) {
+              ++input;
+              continue;
+            }
+          }
+            /* far, needs at least 7-byte match */
+          if (distance >= MAX_L2_Length+65535) {
+            if (ref[3] != input[3] || ref[4] != input[4]||ref[5] != input[5]||ref[6] != input[6]) {
+              ++input;   //invalid 
+              continue;  //continue finding the next matched
+            }
+          }
+
+          output = Literals_Output(input - pivot, pivot, output);
+
+          match_len = match_cmp(ref + 3, input + 3, input_bound);
           output = Match_Output3( match_len, distance, output);
           
           Update_Hash();
@@ -392,5 +540,8 @@ class LZSS_Encoder{
         *(ubyte*)OUTPUT_ |= (1 << 7); // default is all 0s
 
         length_after= output - (ubyte*)OUTPUT_;
+         return length_after;
     }
+
+    
 };

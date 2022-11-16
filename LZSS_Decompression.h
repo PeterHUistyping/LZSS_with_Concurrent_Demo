@@ -27,19 +27,19 @@
 
 class LZSS_Decoder{
   private:
-      const void* INPUT_; 
+         void* INPUT_; 
       int LENGTH_;  //length of the block of data to be Decompressed
       void* OUTPUT_;
-      const ubyte* input; // pointer to input data
-      const ubyte* input_limit; // input data size (max)
+         ubyte* input; // pointer to input data
+         ubyte* input_limit; // input data size (max)
       ubyte* output ; // pointer to output data
       uint ctrl;  // current position's value
-      const ubyte* ref; 
+         ubyte* ref; 
       uint match_len;
       ull offset;// distance from current position to references
       int length_after;
   public:
-    LZSS_Decoder(const void* INPUT, int length, void* OUTPUT):INPUT_(INPUT), input((const ubyte*)INPUT){
+    LZSS_Decoder(   void* INPUT, int length, void* OUTPUT):INPUT_(INPUT), input((   ubyte*)INPUT){
       this->LENGTH_=length;
       input_limit = input + length;
       ctrl = (*input++) & 31;//start with literal run, 000 L4-L0 lower 5 bits -> length of the literal run *(input++)  
@@ -50,7 +50,7 @@ class LZSS_Decoder{
     ~LZSS_Decoder(){}
     int Decompress(){
       // marker for compression level 
-      int level =((*(const ubyte*)INPUT_) >>6)+ (((*(const ubyte*)INPUT_) >>7 ) <<1) + 1;
+      int level =((*(   ubyte*)INPUT_) >>6)<<1)+ (((*(   ubyte*)INPUT_) >>7 ) <<1) + 1;
       if (level == 1) {
         level1();
      
@@ -65,13 +65,13 @@ class LZSS_Decoder{
       return length_after; 
     }
       
-  private:
+  public:
       /* Copies the values of count bytes from the location pointed by source to 
     the memory block pointed by destination. Copying takes place as if an 
     intermediate buffer were used, allowing the destination and source to overlap.
     64-bit implementation for speed improvements.
     memmove=copy8 */
-    void mem_move(ubyte* destination, const ubyte* source, uint count) {
+    void mem_move(ubyte* destination,    ubyte* source, uint count) {
       if ((count > 4) && (destination >= source + count)) {
         memmove(destination, source, count);
       } else {
@@ -158,10 +158,14 @@ class LZSS_Decoder{
       }
       length_after=output - (ubyte*)OUTPUT_;
     }
-    void level3() {
+    long long level3() {
       // bool is_longMatch;
       while (input < input_limit)[[likely]] {
         if (ctrl >= 32) { //Level 2 Extended Windows* Short match
+        if((input-(ubyte*)INPUT_)>=143775)
+        {
+            int a=1;
+        }
           match_len = (ctrl >> 5) - 1;
           // is_longMatch=false;
           offset = (ctrl & 31) << 8;
@@ -186,13 +190,14 @@ class LZSS_Decoder{
             if (offset == (31 << 8))[[likely]] {  //level 2-3
               offset = (*input++) << 8; //|$
               offset += *input++;                 //  W7-W0  
-              if(offset != ((31 << 8)+31))[[likely]]{ //level 2 1111 1111 |   W15-W8	 |   W7-W0          
+              if(offset != ((1<<16)-1))[[likely]]{ //level 2 1111 1111 |   W15-W8	 |   W7-W0          
                 ref = output - offset - MAX_L2_Length - 1;
               }
               else{ //level3 1111 1111  | 1111 1111 | 1111 1111 |   W15-W8	 |   W7-W0  
                 offset = (*input++) << 8; /// W15-W8
                 offset += *input++;//  W7-W0
-                ref = output - offset -65535- MAX_L2_Length-1-1;     
+                ref = output - offset -65535- MAX_L2_Length-1; 
+                //ref-(ubyte*)OUTPUT_;    
               }
             }
           }
@@ -207,5 +212,7 @@ class LZSS_Decoder{
         ctrl = *input++;
       }
       length_after=output - (ubyte*)OUTPUT_;
+      return length_after;
     }
+
 };
