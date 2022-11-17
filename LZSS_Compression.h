@@ -275,57 +275,7 @@ class LZSS_Encoder{
        ubyte* Match_Output4(uint len, uint distance, ubyte* output) {
         --distance;
         uint index=0;
-        //  if (distance < MAX_L2_Length) {
-        //   if (len < 7) {
-        //     output[index++] = (len << 5) + (distance >> 8);
-        //     output[index++] = (distance & 0xff);
-        //   } else {
-        //     output[index++] = (7 << 5) + (distance >> 8);
-        //     for (len -= 7; len >= 0xff; len -= 0xff) output[index++] = 0xff;
-        //     output[index++] = len;
-        //     output[index++] = (distance & 0xff);
-        //   }
-        // } else if(distance<MAX_L2_Length+65535){
-        //   /* still far away... */
-        //   if (len < 7) {//Level 2 Extended Windows* Short match
-        //     distance -= MAX_L2_Length;
-        //     output[index++] = (len << 5) + 0x1f;  
-        //     output[index++] = 0xff;
-        //     output[index++] = distance >> 8;
-        //     output[index++] = distance & 0xff;
-        //   } else {//Level 2 Extended Windows* Long match
-        //     distance -= MAX_L2_Length;
-        //     output[index++] = (7 << 5) + 0x1f;
-        //     for (len -= 7; len >= 0xff; len -= 0xff) output[index++] = 0xff;
-        //     output[index++] = len;
-        //     output[index++] = 0xff;
-        //     output[index++] = distance >> 8;
-        //     output[index++] = distance & 0xff;
-        //   }
-        // } else{ //level3
-        //     if (len < 7) {//Level 3 Extended Windows* Short match
-        //     distance -= MAX_L2_Length;          
-        //      distance -= 65535;
-        //     output[index++] = (len << 5) + 0x1f;
-        //     output[index++] = 0xff;
-        //     output[index++] = 0xff; //0b 1111 1111
-        //     output[index++] = 0xff; //0b 1111 1111
-        //     output[index++] = distance >> 8;
-        //     output[index++] = distance & 0xff;
-        //   } else {//Level 3 Extended Windows* Long match
-        //     distance -= MAX_L2_Length;
-        //     distance -= 65535;
-        //     output[index++] = (7 << 5) + 0x1f;
-        //     for (len -= 7; len >= 0xff; len -= 0xff) output[index++] = 0xff;
-        //     output[index++] = len;
-        //     output[index++] = 0xff;
-        //     output[index++] = 0xff; //0b 1111 1111
-        //     output[index++] = 0xff; //0b 1111 1111
-        //     output[index++] = distance >> 8;
-        //     output[index++] = distance & 0xff;
-        //   }
-        // }
- 
+    
         for(int i=0;i<=Window_Num;i++){
             if (distance <i*65535+ MAX_L2_Length) {
               distance -= MAX_L2_Length;          
@@ -609,22 +559,7 @@ class LZSS_Encoder{
           } // if not match to the previous,  continue to looping
 
           if (input >= input_limit) [[unlikely]]break;
-            // if match to the previous one(>=3)
-
-          /* far, needs at least 5-byte match */
-          // if (distance >= MAX_L2_Length) {
-          //   if (ref[3] != input[3] || ref[4] != input[4]) {
-          //     ++input;
-          //     continue;
-          //   }
-          // }
-          // if (distance >= MAX_L2_Length+65535) {
-          //   if (ref[3] != input[3] || ref[4] != input[4]||ref[5] != input[5]||ref[6] != input[6]) {
-          //     ++input;   //invalid 
-          //     continue;  //continue finding the next matched
-          //   }
-          // }
-          
+  
           bool Invalid_Match=false;
           for(int i=0;i<=Window_Num;i++){
              /* far, needs at least 7-byte match */
