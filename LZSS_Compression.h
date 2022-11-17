@@ -91,11 +91,11 @@ class LZSS_Encoder{
     int Compress(){
       /* for short block, choose level1 */
       if (LENGTH_ < LEVEL1_MAX) {
-        this->level2();
+        this->level3();
         return length_after; 
       }
       /* else length >  LEVEL1_MAX */
-        this->level2();
+        this->level4();
         return length_after;
     }
     int Compress(int level){
@@ -402,9 +402,8 @@ class LZSS_Encoder{
         last_num_bytes = (ubyte*)INPUT_ + LENGTH_ - pivot;
         output = Literals_Output (last_num_bytes, pivot, output);
 
-        // id of this level
-        *(ubyte*)OUTPUT_ |= (1 << 6); // default is all 0s
-
+        // // id of this level
+         *(ubyte*)OUTPUT_ |= (1 << 7); // default is all 0s
         length_after= output - (ubyte*)OUTPUT_;
          return length_after;
     }
@@ -511,11 +510,11 @@ class LZSS_Encoder{
         *(ubyte*)OUTPUT_ |= (1 << 7); // default is all 0s
         length_after= output - (ubyte*)OUTPUT_;
  
-   
+
         return length_after;
     }
-          long long level3() {
- while (input < input_limit)[[likely]] {
+      long long level3() {
+        while (input < input_limit)[[likely]] {
           // potential match
           while(input <= input_limit)[[likely]]{
             if(Matched_First_Every3Bytes(65535 +65535 + MAX_L2_Length )) break;
@@ -554,7 +553,7 @@ class LZSS_Encoder{
         output = Literals_Output (last_num_bytes, pivot, output);
 
         // id of this level
-        *(ubyte*)OUTPUT_ |= (1 << 7); // default is all 0s
+        *(ubyte*)OUTPUT_ |= (1 << 6); // default is all 0s
 
         length_after= output - (ubyte*)OUTPUT_;
          return length_after;
@@ -601,11 +600,11 @@ class LZSS_Encoder{
         output = Literals_Output (last_num_bytes, pivot, output);
 
         // id of this level
-        *(ubyte*)OUTPUT_ |= (1 << 7); // default is all 0s
-
+        *(ubyte*)OUTPUT_ |= (1 << 5); // default is all 0s
+         *(ubyte*)OUTPUT_ |= (1 << 7); // default is all 0s
         length_after= output - (ubyte*)OUTPUT_;
    
       
-         return length_after;  
+        return length_after;  
     }
 };

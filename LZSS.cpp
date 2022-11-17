@@ -152,7 +152,8 @@ int main(){
 
 
 
-     long long chunk_size =Lzss_Encoder.level4();
+    //  long long chunk_size =Lzss_Encoder.level4();
+     long long chunk_size =Lzss_Encoder.Compress();
      long long Window_Num=Lzss_Encoder.getWindowSize();//level 4
 
 
@@ -196,7 +197,7 @@ int main(){
     // long long w=2;
      Lzss_Decoder.setWindowNum(Window_Num);//level4
     cout<<Window_Num;
-    long long chunk_size2 =Lzss_Decoder.level4();
+    long long chunk_size2 =Lzss_Decoder.Decompress();
  
     // long long chunk_size2 =Lzss_Decoder.level3();
     // //cout<<numbytes<<chunk_extra<<chunk_size<<endl;
@@ -210,8 +211,8 @@ int main(){
     //     res.push_back(buffer2[i]);
     // } */
      FILE *fe=fopen("Decompressed.txt","wb");
-      fwrite(  buffer4 , 1,chunk_size2 , fe);
-     fclose(fe);
+    fwrite(  buffer4 , 1,chunk_size2 , fe);
+    fclose(fe);
     //Reconstruct before being deleted
     delete[]buffer3;
     delete[]buffer4;

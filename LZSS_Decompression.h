@@ -50,8 +50,13 @@ class LZSS_Decoder{
     }
     ~LZSS_Decoder(){}
     int Decompress(){
-      // marker for compression level 
-      int level =(((*(ubyte*)INPUT_) >>6)<<1)+ (((*(ubyte*)INPUT_) >>7 ) <<1) + 1;
+      // marker for compression level
+      // default level1 
+      int MSB_7=(*(ubyte*)INPUT_) >>7;     //level=2
+      int MSB_6=((*(ubyte*)INPUT_) >>6)&1; //level=3
+      int MSB_5=((*(ubyte*)INPUT_) >>5)&1; //level=4
+      int level = MSB_7+( MSB_6<<1) +MSB_5*3 + 1;
+      cout<<level;
       if (level == 1) {
         level1();
      
@@ -264,7 +269,6 @@ class LZSS_Decoder{
               }    
             }
           }
-          
           this->mem_move(output, ref, match_len);
           output += match_len;
         } else {
