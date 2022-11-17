@@ -152,7 +152,7 @@ int main(){
 
 
 
-     long long chunk_size =Lzss_Encoder.level4();
+     long long chunk_size =Lzss_Encoder.level3();
      long long Window_Num=Lzss_Encoder.getWindowSize();//level 4
 
 
@@ -196,7 +196,7 @@ int main(){
     long long w=2;
      Lzss_Decoder.setWindowNum(w);//level4
     cout<<Window_Num;
-    long long chunk_size2 =Lzss_Decoder.level4();
+    long long chunk_size2 =Lzss_Decoder.level3();
  
     // long long chunk_size2 =Lzss_Decoder.level3();
     // //cout<<numbytes<<chunk_extra<<chunk_size<<endl;
