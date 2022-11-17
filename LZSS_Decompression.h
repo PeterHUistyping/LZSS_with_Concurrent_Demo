@@ -252,6 +252,7 @@ class LZSS_Decoder{
         //     }
         //   }
           if (code == 255) [[unlikely]]{
+            if (offset == (31 << 8))[[likely]] {
                 for(int i=1;i<=Window_Num;i++){//level 3+
                  //level3 1111 1111  | 1111 1111 | 1111 1111 |   W15-W8	 |   W7-W0  
                 offset = (*input++) << 8; /// W15-W8
@@ -262,6 +263,7 @@ class LZSS_Decoder{
                  }
               }    
             }
+          }
           
           this->mem_move(output, ref, match_len);
           output += match_len;

@@ -277,7 +277,7 @@ class LZSS_Encoder{
         uint index=0;
     
         for(int i=0;i<=Window_Num;i++){
-            if (distance <i*65535+ MAX_L2_Length) {
+            if (distance <uint(i)*65535+ MAX_L2_Length) {
               distance -= MAX_L2_Length;          
               distance -= 65535*i;
             if (len < 7) {
