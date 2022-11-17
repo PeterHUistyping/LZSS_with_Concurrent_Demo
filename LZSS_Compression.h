@@ -562,7 +562,7 @@ class LZSS_Encoder{
         return length_after;
     }
           long long level3() {
-         while (input < input_limit)[[likely]] {
+ while (input < input_limit)[[likely]] {
           // potential match
           while(input <= input_limit)[[likely]]{
             if(Matched_First_Every3Bytes(65535 +65535 + MAX_L2_Length )) break;
@@ -604,9 +604,6 @@ class LZSS_Encoder{
         *(ubyte*)OUTPUT_ |= (1 << 7); // default is all 0s
 
         length_after= output - (ubyte*)OUTPUT_;
-        
- 
- 
          return length_after;
          
     }
