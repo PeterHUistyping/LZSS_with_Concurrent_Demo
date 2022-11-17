@@ -609,8 +609,7 @@ class LZSS_Encoder{
     }
 
       long long level4() {
-        //  vector <int> count;
-        int count=0;
+      
 
         while (input < input_limit)[[likely]] {
           // potential match
@@ -654,7 +653,7 @@ class LZSS_Encoder{
 
           match_len = match_cmp(ref + 3, input + 3, input_bound);
 
-          output = Match_Output4( match_len, distance, output);
+          output = Match_Output3( match_len, distance, output);
           
           Update_Hash();
 
@@ -668,9 +667,7 @@ class LZSS_Encoder{
         *(ubyte*)OUTPUT_ |= (1 << 7); // default is all 0s
 
         length_after= output - (ubyte*)OUTPUT_;
-        // for(auto i:count){
-        //   cout<<i<<endl;
-        // }
+   
       
          return length_after;  
     }
