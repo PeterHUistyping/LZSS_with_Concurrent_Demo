@@ -236,29 +236,33 @@ class LZSS_Decoder{
           code = *input++; //|-
           ref -= code;
           match_len += 3;
- 
-          
+        //  if (code == 255) [[unlikely]]{
+        //     if (offset == (31 << 8))[[likely]] {  //level 2-3
+        //       offset = (*input++) << 8; //|$
+        //       offset += *input++;                 //  W7-W0  
+        //       if(offset != ((1<<16)-1))[[likely]]{ //level 2 1111 1111 |   W15-W8	 |   W7-W0          
+        //         ref = output - offset - MAX_L2_Length - 1;
+        //       }
+        //       else{ //level3 1111 1111  | 1111 1111 | 1111 1111 |   W15-W8	 |   W7-W0  
+        //         offset = (*input++) << 8; /// W15-W8
+        //         offset += *input++;//  W7-W0
+        //         ref = output - offset -65535- MAX_L2_Length-1; 
+        //         //ref-(ubyte*)OUTPUT_;    
+        //       }
+        //     }
+        //   }
           if (code == 255) [[unlikely]]{
-            if (offset == (31 << 8))[[likely]] {  //level 2
-              offset = (*input++) << 8; //|$
-              offset += *input++;                 //  W7-W0  
-              if(offset != ((1<<16)-1))[[likely]]{ //level 2 1111 1111 |   W15-W8	 |   W7-W0          
-                ref = output - offset - MAX_L2_Length - 1;
-              }
-              else{
-                for(int i=2;i<=Window_Num;i++){//level 3+
-                // if(offset)
+                for(int i=1;i<=Window_Num;i++){//level 3+
                  //level3 1111 1111  | 1111 1111 | 1111 1111 |   W15-W8	 |   W7-W0  
                 offset = (*input++) << 8; /// W15-W8
                 offset += *input++;//  W7-W0
-                ref = output - offset -65535 - MAX_L2_Length-1; 
-                //ref-(ubyte*)OUTPUT_;    
-               }
-                
-              
-              }
+                if(offset != 0xffff)[[likely]]{ //level 2 1111 1111 |   W15-W8	 |   W7-W0          
+                 ref = output - offset -65535*(i-1) - MAX_L2_Length-1; 
+                 break;
+                 }
+              }    
             }
-          }
+          
           this->mem_move(output, ref, match_len);
           output += match_len;
         } else {

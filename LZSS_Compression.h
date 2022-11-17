@@ -59,7 +59,7 @@ class LZSS_Encoder{
 
     HashTable Hash; //initialized
     uint hash; // 0  - {(hash_size/1<<14)-1}
-      ubyte* pivot ;// first of unwritten byte
+    ubyte* pivot ;// first of unwritten byte
     ubyte* ref; //pointer to ubyte (starting point of three bytes) of the same three bytes given
     ubyte* ref1;
     uint sequence;// a sequence of 3 bytes from the third of the input data given.(For the first two, no need to implement)
@@ -84,7 +84,7 @@ class LZSS_Encoder{
       input_limit = input + LENGTH_ - 12 - 1;  //?
       match_len=0;
       input += 2;//Omit the first two char
-      Window_Num=2;
+      Window_Num=3;
       // Window_Num=(input_limit-input)/65535;//level4
     }
     ~LZSS_Encoder(){}
@@ -325,16 +325,8 @@ class LZSS_Encoder{
         //     output[index++] = distance & 0xff;
         //   }
         // }
-        if (len < 7) {
-            output[index++] = (len << 5) + (distance >> 8);
-            output[index++] = (distance & 0xff);
-          } else {
-            output[index++] = (7 << 5) + (distance >> 8);
-            for (len -= 7; len >= 0xff; len -= 0xff) output[index++] = 0xff;
-            output[index++] = len;
-            output[index++] = (distance & 0xff);
-          }
-        for(int i=1;i<=Window_Num;i++){
+ 
+        for(int i=0;i<=Window_Num;i++){
             if (distance <i*65535+ MAX_L2_Length) {
               distance -= MAX_L2_Length;          
               distance -= 65535*i;
@@ -609,12 +601,10 @@ class LZSS_Encoder{
     }
 
       long long level4() {
-      
-
         while (input < input_limit)[[likely]] {
           // potential match
           while(input <= input_limit)[[likely]]{
-            if(Matched_First_Every3Bytes(input_limit-input )) break;
+            if(Matched_First_Every3Bytes(Window_Num*65535 + MAX_L2_Length )) break;
             ++input;
           } // if not match to the previous,  continue to looping
 
@@ -649,11 +639,12 @@ class LZSS_Encoder{
             ++input;
             continue;
           }
+       
           output = Literals_Output(input - pivot, pivot, output);
 
           match_len = match_cmp(ref + 3, input + 3, input_bound);
 
-          output = Match_Output3( match_len, distance, output);
+          output = Match_Output4( match_len, distance, output);
           
           Update_Hash();
 

@@ -152,7 +152,7 @@ int main(){
 
 
 
-     long long chunk_size =Lzss_Encoder.level3();
+     long long chunk_size =Lzss_Encoder.level4();
      long long Window_Num=Lzss_Encoder.getWindowSize();//level 4
 
 
@@ -187,16 +187,16 @@ int main(){
     //    read_chunk_header(infile2,  &Window_Num );//level 4
     unsigned char* buffer3 = new unsigned char[numbyte2];
     unsigned char* buffer4 = new unsigned char[numbytes+10];
-    fread(buffer, sizeof(char), numbyte2, infile2);
+    fread(buffer3, sizeof(char), numbyte2, infile2);
     // // FILE *f=fopen(output_location.c_str(),"wb");
     // // fwrite(buffer, 1, numbytes , f);
     // // fclose(f);
     LZSS_Decoder Lzss_Decoder(buffer3, numbyte2, buffer4);
     // Lzss_Decoder.setWindowNum(Window_Num);//level4
-    long long w=2;
-     Lzss_Decoder.setWindowNum(w);//level4
+    // long long w=2;
+     Lzss_Decoder.setWindowNum(Window_Num);//level4
     cout<<Window_Num;
-    long long chunk_size2 =Lzss_Decoder.level3();
+    long long chunk_size2 =Lzss_Decoder.level4();
  
     // long long chunk_size2 =Lzss_Decoder.level3();
     // //cout<<numbytes<<chunk_extra<<chunk_size<<endl;
