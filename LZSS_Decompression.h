@@ -162,9 +162,14 @@ class LZSS_Decoder{
       length_after=output - (ubyte*)OUTPUT_;
       return length_after;
     }
-    long long level3() {
+  long long level3() {
+      // bool is_longMatch;
       while (input < input_limit)[[likely]] {
         if (ctrl >= 32) { //Level 2 Extended Windows* Short match
+        if((input-(ubyte*)INPUT_)>=143775)
+        {
+            int a=1;
+        }
           match_len = (ctrl >> 5) - 1;
           // is_longMatch=false;
           offset = (ctrl & 31) << 8;
