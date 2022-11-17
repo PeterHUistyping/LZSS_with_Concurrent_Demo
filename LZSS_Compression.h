@@ -273,28 +273,39 @@ class LZSS_Encoder{
         return &output[index];
       }
        ubyte* Match_Output4(uint len, uint distance, ubyte* output) {
-        --distance;
+       --distance;
         uint index=0;
-    
-        for(int i=0;i<=Window_Num;i++){
-            if (distance <uint(i)*65535+ MAX_L2_Length) {
-              distance -= MAX_L2_Length;          
-              distance -= 65535*i;
+          if (distance < MAX_L2_Length) {
+          if (len < 7) {
+            output[index++] = (len << 5) + (distance >> 8);
+            output[index++] = (distance & 0xff);
+          } else {
+            output[index++] = (7 << 5) + (distance >> 8);
+            for (len -= 7; len >= 0xff; len -= 0xff) output[index++] = 0xff;
+            output[index++] = len;
+            output[index++] = (distance & 0xff);
+          }
+        }  
+        for(uint i=1;i<=Window_Num;i++){
+            if (distance>= MAX_L2_Length&&  distance <uint(i)*65535+ MAX_L2_Length) {
+            distance -= MAX_L2_Length;          
+            distance -= 65535*(i-1);
             if (len < 7) {
               output[index++] = (len << 5) + 0x1f;
               output[index++] = 0xff;
-              for(int j=2;j<=i;j++){
+              for(uint j=2;j<=i;j++){
                 output[index++] = 0xff; //0b 1111 1111
                 output[index++] = 0xff; //0b 1111 1111
               }
               output[index++] = distance >> 8;
               output[index++] = distance & 0xff;
+              break;
             } else {
               output[index++] = (7 << 5) + 0x1f;
               for (len -= 7; len >= 0xff; len -= 0xff) output[index++] = 0xff;
               output[index++] = len;
               output[index++] = 0xff;
-               for(int j=2;j<=i;j++){
+               for(uint j=2;j<=i;j++){
                 output[index++] = 0xff; //0b 1111 1111
                 output[index++] = 0xff; //0b 1111 1111
               }
