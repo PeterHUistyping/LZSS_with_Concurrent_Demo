@@ -38,7 +38,7 @@ using chrono::milliseconds;
 
 #define FASTLZ_VERSION_STRING "0.5.0"
 
- const int num_threads=14;
+ const int num_threads=2;
 /*
  * Always check for bound when decompressing.
  * Generally it is best to leave it defined.
