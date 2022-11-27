@@ -5,9 +5,35 @@ Implemented from https://github.com/ariya/FastLZ
 Input.txt -> Output.txt -> Decompressed.txt\
 Open in Hex Editor (vscode extension)\
 Ensure when decompressing, chunk_extra=numbytes;
+
+In task.json
+```
+"args": [
+               //...add the following to increase the stack size  
+                "-Wl,-stack_size",
+                "-Wl,0x10000000"
+            ],
+```
 ## Update
 Compress / Decompress\
 Using namespace std;
+Record time spent:
+```
+chrono::time_point<std::chrono::system_clock> begin_time=     
+                        std::chrono::system_clock::now();
+    sleep(10);
+    auto end_time = std::chrono::system_clock::now();
+    chrono::duration<double, std::milli> duration_mili = end_time - 
+                begin_time;
+    
+    printf("PrintDuration : duration_mili duration = %ld ms", (long)duration_mili.count());
+```
+Updated Concurrent implementation
+	Unit Reading of I/O
+	Multiple Threads of Decompression
+	Output using one-dimensional array
+## To Do
+const int num_threads=1; //bug
 ## Fast_LZ77
 
 ### Compression Algorithm (Explained by a Demo)
@@ -74,7 +100,7 @@ I do not like green eggs and ham.
 
 ### Compression Src 
 ```
-seq = flz_readu32(ip) & 0xffffff;
+seq = lzss_readu32(ip) & 0xffffff;
 	seq=3Bytes staring from ip, for every ip from the third Byte
 (As 1st,2nd Byte don't need to compress)
 
@@ -88,7 +114,7 @@ ref = ip_start + htab[hash];
 distance = ip - ref;
 	LZ77 offset
 
-cmp = FASTLZ_LIKELY(distance < MAX_FARDISTANCE) ? flz_readu32(ref) & 0xffffff : 0x1000000;
+cmp = FASTLZ_LIKELY(distance < MAX_FARDISTANCE) ? lzss_readu32(ref) & 0xffffff : 0x1000000;
 	comparing 3Bytes staring from ip and 3Bytes staring from ref
 	if cmp==seq -> break;
 
@@ -97,19 +123,19 @@ const uint8_t* anchor = ip;
 
 
 	Main function:
-flz_literals(ip - anchor, anchor, op); 
-flz_finalize(copy, anchor, op);
+lzss_literals(ip - anchor, anchor, op); 
+lzss_finalize(copy, anchor, op);
 	write from anchor to ip into op 
 	write from anchor copy Bytes into op
 
-flz1_match(len, distance, op);
+lzss1_match(len, distance, op);
 	write match length and offset(distance here) into op
 ```
 ### Decompression Src 
 ```
 	Main function:
 	Matching 
-fastlz_memmove(op, ref, len);
+LZSS_memmove(op, ref, len);
 	Literal Run
-fastlz_memcpy(op, ip, ctrl);  
+LZSS_memcpy(op, ip, ctrl);  
 ```
