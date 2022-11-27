@@ -1,5 +1,6 @@
 # Fast_LZ77 Understanding and Improving
-A part of HUAWEI UK TECH Contest\ 
+A part of HUAWEI UK TECH Contest
+
 Implemented from https://github.com/ariya/FastLZ
 ## How to use this Demo
 Input.txt -> Output.txt -> Decompressed.txt\
